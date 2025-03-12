@@ -1,0 +1,72 @@
+// 统一的菜单样式
+.context-menu-base {
+  --menu-background: var(--main-background-light-color);
+  --menu-hover: var(--main-background-hover-color);
+  --menu-border: var(--main-border-color);
+  --menu-text: var(--main-text-color);
+  --menu-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --menu-blur: 20px;
+  --menu-radius: 12px;
+  --menu-item-radius: 8px;
+  
+  background: var(--menu-background) !important;
+  backdrop-filter: blur(var(--menu-blur)) !important;
+  -webkit-backdrop-filter: blur(var(--menu-blur)) !important;
+  border: 1px solid var(--menu-border) !important;
+  border-radius: var(--menu-radius) !important;
+  box-shadow: var(--menu-shadow) !important;
+  padding: 6px !important;
+  min-width: 120px !important;
+  
+  .menu-item,
+  .n-dropdown-option {
+    padding: 8px 12px !important;
+    margin: 2px 4px !important;
+    border-radius: var(--menu-item-radius) !important;
+    transition: all 0.2s ease-in-out !important;
+    color: var(--menu-text) !important;
+    font-size: 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    
+    &:hover {
+      background-color: var(--menu-hover) !important;
+      transform: scale(1.02) !important;
+    }
+    
+    .menu-icon {
+      font-size: 16px !important;
+      opacity: 0.8 !important;
+    }
+    
+    .menu-divider {
+      height: 1px !important;
+      background-color: var(--menu-border) !important;
+      margin: 4px 0 !important;
+    }
+  }
+  
+  // naive-ui 下拉菜单特定样式
+  &.n-dropdown-menu {
+    .n-dropdown-option {
+      .n-dropdown-option-body {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+      }
+      
+      .n-dropdown-option-prefix {
+        margin-right: 0 !important;
+      }
+    }
+  }
+}
+
+// 右键菜单特定样式
+.context-menu {
+  @extend .context-menu-base;
+  position: fixed !important;
+  z-index: 9999 !important;
+} 

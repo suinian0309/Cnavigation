@@ -1,0 +1,50 @@
+# ===== 基础规则 =====
+# 依赖目录
+node_modules/
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== 开发环境相关 =====
+# IDE配置
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+
+# 编辑器临时文件
+*.swp
+*.swo
+*.tmp
+
+# ===== 系统生成文件 =====
+.DS_Store
+Thumbs.db
+
+# ===== 构建产物 =====
+dist/
+build/
+out/
+*.exe
+*.dll
+
+# ===== 配置与敏感数据 =====
+config/*.local.*
+.env
+.env.local
+
+# ===== 测试相关 =====
+coverage/
+.nyc_output/
+
+# ===== 包管理 =====
+package-lock.json
+yarn.lock
+jspm_packages/
+
+# ===== 保留占位文件 =====
+!.gitkeep
