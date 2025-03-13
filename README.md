@@ -24,7 +24,7 @@
 - [Vite](https://vitejs.cn/) - 下一代前端构建工具
 - [Pinia](https://pinia.vuejs.org/zh/) - Vue 状态管理库
 - [Naive UI](https://www.naiveui.com/) - Vue 3 组件库
-- [Sass](https://sass-lang.com/) - CSS 预处理器
+- [PostCSS](https://postcss.org/) - CSS 转换工具
 - [PWA](https://web.dev/progressive-web-apps/) - 渐进式 Web 应用
 
 ## 快速开始
