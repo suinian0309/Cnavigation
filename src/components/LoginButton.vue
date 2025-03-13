@@ -6,7 +6,7 @@
       :title="isLoggedIn ? '个人中心' : '登录'"
       @click.stop="handleLoginClick"
     >
-      <SvgIcon :iconName="`icon-${isLoggedIn ? 'user' : 'login'}`" />
+      <SvgIcon :iconName="`icon-${isLoggedIn ? 'yidenglu-zaixian' : 'denglu'}`" />
     </div>
     
     <!-- 登录对话框 -->
@@ -95,4 +95,4 @@ const cancelLogin = () => {
     color: inherit;
   }
 }
-</style>
+</style> 
