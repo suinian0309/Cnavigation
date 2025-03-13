@@ -1,6 +1,11 @@
 ---
-description: 默认
+description: 
 globs: 
+alwaysApply: false
+---
+---
+description: 默认
+globs: ["**/*"]
 alwaysApply: false
 ---
 默认情况下，所有回复必须使用中文。

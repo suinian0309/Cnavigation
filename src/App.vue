@@ -47,6 +47,7 @@
             >
               <SvgIcon :iconName="`icon-${set.themeType === 'light' ? 'yueliang-copy' : 'Sunny'}`" />
             </div>
+            <LoginButton />
             <div
               class="change-status"
               :title="status.siteStatus !== 'set' ? '设置' : '首页'"
@@ -72,6 +73,7 @@ import SearchInp from "@/components/SearchInput/SearchInp.vue";
 import AllFunc from "@/components/AllFunc/AllFunc.vue";
 import Hitokoto from '@/components/Hitokoto.vue';
 import Toolbar from '@/components/Toolbar.vue';
+import LoginButton from '@/components/LoginButton.vue';
 
 const set = setStore();
 const status = statusStore();
