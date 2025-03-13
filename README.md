@@ -1,74 +1,60 @@
-<p>
-<strong><h2>Snavigation</h2></strong>
-一个简约的起始页
-</p>
+# Cnavigation
 
-![Snavigation.png](https://s2.loli.net/2022/07/15/FE6U2BJCynHDep8.jpg)
+一个简约而功能丰富的个人导航起始页
 
-> 重构中，尚未完成
+![Cnavigation](https://s2.loli.net/2022/07/15/FE6U2BJCynHDep8.jpg)
 
-### Demo
+## 功能特点
 
-> 由于 `CDN` 缓存原因，查看最新效果可能需要 `Ctrl` + `F5` 强制刷新浏览器缓存
-
-- [Snavigation](https://nav.imsyy.top)
-- [Snavigation Dev](https://snavigation-git-dev-imsyy.vercel.app/)
-
-### 功能
-
-- [x] 载入动画
+- [x] 简洁美观的界面设计
 - [x] 时间及天气显示
 - [x] 快捷方式自定义
 - [x] 网站背景自定义
-- [x] 数据备份及恢复
-- [x] 移动端适配
-- [x] 切换搜索引擎
-- [x] 设置
-- [x] 备份
+- [x] 数据本地持久化存储
+- [x] 移动端响应式适配
+- [x] 多搜索引擎支持
+- [x] 深色/浅色主题切换
+- [x] 一言功能
+- [ ] 书签管理
+- [ ] 备忘录功能
 
-* [ ] 一言
-* [ ] 书签
-* [ ] 备忘
+## 技术栈
 
-### 配置
+- [Vue 3](https://cn.vuejs.org/) - 渐进式 JavaScript 框架
+- [Vite](https://vitejs.cn/) - 下一代前端构建工具
+- [Pinia](https://pinia.vuejs.org/zh/) - Vue 状态管理库
+- [Naive UI](https://www.naiveui.com/) - Vue 3 组件库
+- [Sass](https://sass-lang.com/) - CSS 预处理器
+- [PWA](https://web.dev/progressive-web-apps/) - 渐进式 Web 应用
 
-修改项目的部分默认设置可前往根目录下的 `.env` 文件中修改
+## 快速开始
 
-### 部署
+### 安装依赖
 
-## 常用命令
-
-### 开发模式
-```bash
-# 同时启动前后端（推荐）
-npm run start
-
-# 单独启动前端
-npm run dev
-
-# 单独启动后端
-cd backend && npm run dev
-```
-
-### 生产构建
-```bash
-# 构建前端
-npm run build
-
-# 启动生产预览
-npm run preview
-```
-
-### 依赖管理
 ```bash
 # 安装前端依赖
 npm install
+```
 
-# 安装后端依赖
-cd backend && npm install
+### 开发模式
+
+```bash
+# 启动开发服务器
+npm run dev
+```
+
+### 生产构建
+
+```bash
+# 构建生产版本
+npm run build
+
+# 预览生产构建
+npm run preview
 ```
 
 ### 代码质量
+
 ```bash
 # 代码格式化
 npm run format
@@ -77,47 +63,57 @@ npm run format
 npm run lint
 ```
 
-### 数据库操作
-```bash
-# 连接MongoDB（需安装mongosh）
-mongosh mongodb://localhost:27017/snavigation
+## 项目配置
+
+项目的环境变量配置在根目录的 `.env` 文件中，你可以根据需要修改以下配置：
+
+```
+# 站点信息
+VITE_SITE_TITLE=Cnavigation
+VITE_SITE_AUTHOR=Your Name
+VITE_SITE_KEYWORDS=导航,起始页,简约
+VITE_SITE_DES=一个简约的导航起始页
+VITE_SITE_LOGO=/favicon.svg
+VITE_SITE_APPLE_LOGO=/apple-touch-icon.png
+
+# API 配置
+VITE_WEATHER_API=https://api.example.com/weather
+VITE_HITOKOTO_API=https://v1.hitokoto.cn
 ```
 
-### 进程监控
-```powershell
-# 查看Node进程
-Get-Process node
+## 部署
 
-# 终止进程
-Stop-Process -Id <PID>
-```
+构建完成后，静态资源会在 **`dist` 目录** 中生成，你可以将这些文件部署到任何静态网站托管服务上：
 
-## 开发环境
-- 前端地址：http://localhost:5173
-- 后端API：http://localhost:3000
-- 接口文档：http://localhost:3000/api-docs
-- 管理后台：http://localhost:3000/admin
+- [Vercel](https://vercel.com/)
+- [Netlify](https://www.netlify.com/)
+- [GitHub Pages](https://pages.github.com/)
+- [Cloudflare Pages](https://pages.cloudflare.com/)
 
-> 构建完成后，静态资源会在 **`dist` 目录** 中生成，可将 **`dist` 文件夹下的文件**上传至服务器，
-> 也可使用 [Vercel](https://vercel.com/) 或 [Cloudflare Pages](https://pages.cloudflare.com/) 等托管平台一键自动部署
+## 浏览器支持
 
-### 技术栈
+- Chrome
+- Firefox
+- Safari
+- Edge
+- 其他现代浏览器
 
-- [Vue](https://cn.vuejs.org/)
-- [Vite](https://vitejs.cn/vite3-cn/)
-- [Pinia](https://pinia.vuejs.org/zh/)
-- [iconfont](https://www.iconfont.cn/)
+## 贡献指南
 
-### API
+1. Fork 本仓库
+2. 创建你的特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交你的更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 打开一个 Pull Request
 
-- [小歪 API](https://api.ixiaowai.cn/)
-- [缙哥哥 API](https://www.dujin.org/3618.html)
-- [Hitokoto 一言](https://hitokoto.cn/)
+## 许可证
 
-### 鸣谢
+本项目基于 [MIT 许可证](LICENSE)。
 
-本站部分样式及功能参考自
+## 鸣谢
 
-- [青柠起始页](https://limestart.cn/)
+- [iconfont](https://www.iconfont.cn/) - 图标资源
+- [Hitokoto](https://hitokoto.cn/) - 一言 API
+- 所有开源贡献者
 
 <a title="SSL" target="_blank" href="https://myssl.com/seal/detail?domain=blog.imsyy.top"><img src="https://img.shields.io/badge/MySSL-安全认证-brightgreen"></a>&nbsp;<a title="CDN" target="_blank" href="https://cdnjs.com/"><img src="https://img.shields.io/badge/CDN-Cloudflare-blue"></a>&nbsp;<a title="Copyright" target="_blank" href="https://imsyy.top/"><img src="https://img.shields.io/badge/Copyright%20%C2%A9%202020--2023-%E7%84%A1%E5%90%8D-red"></a>
