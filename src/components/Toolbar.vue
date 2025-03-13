@@ -1,12 +1,19 @@
 <template>
   <div class="toolbar" :class="{ 'theme-light': themeType === 'light', 'theme-dark': themeType === 'dark' }" @contextmenu.prevent.stop="showContextMenu($event)">
-    <div v-for="item in toolbarItems" :key="item._id" class="toolbar-item" @click="handleClick(item)" @contextmenu.prevent.stop="showItemContextMenu($event, item)">
+    <div v-for="item in toolbarItems" :key="item._id" class="toolbar-item" @click="handleClick(item)" @contextmenu.prevent.stop="showItemContextMenu($event, item)" @mouseenter="showItemName(item, $event)" @mouseleave="hideItemName">
       <div class="toolbar-icon" :style="{ backgroundImage: item.gradient }">
         <i></i>
       </div>
-      <div class="toolbar-name">{{ item.name }}</div>
     </div>
   </div>
+  
+  <!-- 使用Teleport将名称提示移到body中 -->
+  <teleport to="body">
+    <div v-if="showNameTip" class="toolbar-name-teleport" :style="nameTipStyle">
+      {{ currentItemName }}
+    </div>
+  </teleport>
+  
   <!-- 右键菜单 -->
   <n-dropdown
     class="toolbar-dropdown"
@@ -38,6 +45,10 @@ const set = setStore()
 const { isLoggedIn } = storeToRefs(user)
 const { themeType } = storeToRefs(set)
 const message = useMessage()
+
+const showNameTip = ref(false)
+const currentItemName = ref('')
+const nameTipStyle = ref({})
 
 const defaultToolbarItems = [
   {
@@ -158,6 +169,21 @@ const handleSelect = (key) => {
   showMenu.value = false
 }
 
+const showItemName = (item, event) => {
+  const rect = event.target.getBoundingClientRect()
+  currentItemName.value = item.name
+  nameTipStyle.value = {
+    left: `${rect.left + rect.width / 2}px`,
+    top: `${rect.top - 30}px`,
+    transform: 'translateX(-50%)'
+  }
+  showNameTip.value = true
+}
+
+const hideItemName = () => {
+  showNameTip.value = false
+}
+
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
 })
@@ -215,12 +241,6 @@ onUnmounted(() => {
   &:hover {
     transform: translateY(-5px);
     
-    .toolbar-name {
-      opacity: 1;
-      transform: translateY(0);
-      z-index: 1001;
-    }
-    
     .toolbar-icon {
       transform: scale(1.1);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -275,6 +295,12 @@ onUnmounted(() => {
   }
 }
 
+.toolbar-item:hover .toolbar-name {
+  opacity: 1;
+  transform: translateY(0);
+  z-index: 1001;
+}
+
 /* 捷径坞右键菜单样式 */
 :deep(.toolbar-dropdown) {
   .n-dropdown-menu {
@@ -323,6 +349,66 @@ onUnmounted(() => {
   :deep(.i-icon) {
     width: 12px !important;
     height: 12px !important;
+  }
+}
+
+/* 自定义Tooltip样式 */
+:deep(.n-tooltip) {
+  z-index: 1100 !important; /* 确保Tooltip显示在最上层 */
+}
+
+:deep(.n-tooltip-content) {
+  font-size: 12px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 确保所有悬停提示显示在最上层 */
+:root {
+  --tooltip-z-index: 9999;
+}
+
+.toolbar-name, 
+:deep(.n-tooltip), 
+:deep(.n-dropdown) {
+  z-index: var(--tooltip-z-index) !important;
+}
+
+/* Teleport 名称提示样式 */
+.toolbar-name-teleport {
+  position: fixed;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  font-weight: 500;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 4px 8px;
+  border-radius: 6px;
+  animation: fadeIn 0.2s ease-out;
+  
+  @media screen and (max-width: 768px) {
+    font-size: 11px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px) translateX(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
   }
 }
 </style>
