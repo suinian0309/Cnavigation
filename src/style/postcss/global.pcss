@@ -1,5 +1,5 @@
-// 导入菜单样式
-@use './_menu';
+/* 导入菜单样式 */
+@import './_menu.pcss';
 
 :root {
   --body-background-color: #333333;
@@ -51,24 +51,27 @@ body {
   height: 100vh;
 }
 
-// NButton
+/* NButton */
 .n-button {
   background-color: var(--main-background-light-color);
   border-radius: 8px;
   transition: background-color 0.3s;
 }
 
-// NMessage
+/* NMessage */
 .n-message-container {
   top: 20px !important;
+
   .n-message-wrapper {
     border-radius: 25px;
     backdrop-filter: blur(20px);
+
     .n-message {
       padding: 12px 28px;
       border-radius: 25px;
       background-color: var(--main-background-light-color);
       color: var(--main-text-color);
+
       .n-message__icon > * {
         color: var(--main-text-color);
       }
@@ -76,20 +79,24 @@ body {
   }
 }
 
-// NTabs
+/* NTabs */
 .n-tabs {
   height: 100%;
   --n-bar-color: var(--main-text-color) !important;
   --n-tab-text-color-active: var(--main-text-color) !important;
   --n-tab-text-color-hover: var(--main-text-color) !important;
+
   .n-tabs-nav {
     height: 44px;
   }
+
   .n-tabs-pane-wrapper {
     height: 100%;
+
     .n-tab-pane {
       padding: 20px;
       box-sizing: border-box;
+
       &.no-padding {
         padding: 0;
       }
@@ -97,42 +104,47 @@ body {
   }
 }
 
-// NSwitch
+/* NSwitch */
 .n-switch {
   --n-rail-color: var(--main-background-light-color) !important;
   --n-rail-color-active: var(--main-background-hover-color) !important;
   --n-box-shadow-focus: var(--main-box-shadow) !important;
 }
 
-// NScrollbar
+/* NScrollbar */
 .n-scrollbar {
   .n-scrollbar-rail {
     right: 0 !important;
   }
 }
 
-// NModal
+/* NModal */
 .n-modal-container {
   .n-modal-mask {
     backdrop-filter: blur(40px);
   }
-  // n-dialog
+
+  /* n-dialog */
   .n-dialog {
     border-radius: 8px;
     box-shadow: none;
     --n-icon-color: var(--main-text-color);
     --n-color: var(--main-background-light-color);
+
     .n-dialog__title {
       font-weight: bold;
       font-size: 18px;
+
       .n-dialog__icon {
         font-size: 24px;
         margin-right: 8px;
       }
     }
+
     .n-dialog__content {
       font-size: 15px;
     }
+
     .n-button {
       height: auto;
       padding: 9px 16px;
@@ -150,6 +162,7 @@ body {
       --n-color-hover: var(--main-background-hover-color);
     }
   }
+
   .n-modal {
     width: 60vw;
     max-width: 700px;
@@ -160,14 +173,14 @@ body {
   }
 }
 
-// 移除原有的 NDropdown 样式
+/* 移除原有的 NDropdown 样式 */
 .n-dropdown:not(.custom-dropdown) {
   .n-dropdown-menu {
     @extend .context-menu-base;
   }
 }
 
-// Transition 动画
+/* Transition 动画 */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.25s ease-in-out;
@@ -208,7 +221,7 @@ body {
   transform: translateY(20px);
 }
 
-// 全局动画
+/* 全局动画 */
 @keyframes fade-up-in {
   0% {
     opacity: 0;
@@ -272,16 +285,28 @@ body {
   }
 }
 
-// 文本选中
+/* 文本选中 */
 ::selection {
   color: var(--main-text-color);
   background-color: var(--main-text-hover-color);
 }
 
-// 滚动条
+/* 滚动条 */
 .ps__rail-y {
   .ps__thumb-y {
     right: 0;
     background-color: var(--main-background-light-color);
   }
 }
+
+/* 修复捷径坞的文字遮挡问题 */
+.shortcut-item {
+  .shortcut-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    padding: 0 5px;
+    box-sizing: border-box;
+  }
+} 

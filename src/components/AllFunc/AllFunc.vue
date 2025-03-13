@@ -24,7 +24,7 @@ import AllSet from "@/components/AllFunc/AllSet.vue";
 const status = statusStore();
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .main-box {
   position: absolute;
   width: 57.25%;

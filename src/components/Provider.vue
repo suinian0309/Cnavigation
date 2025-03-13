@@ -38,12 +38,12 @@ import {
 
 const set = setStore();
 
-// 主题
+/* 主题 */
 const theme = computed(() => {
   return set.themeType === 'dark' ? darkTheme : lightTheme;
 });
 
-// 全局主题
+/* 全局主题 */
 const themeOverrides = {
   common: {
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
@@ -54,17 +54,17 @@ const themeOverrides = {
   },
 };
 
-// 挂载 Naive 组件
+/* 挂载 Naive 组件 */
 const setupNaiveTools = () => {
-  // 通知
+  /* 通知 */
   window.$notification = useNotification();
-  // 信息
+  /* 信息 */
   window.$message = useMessage();
-  // 对话框
+  /* 对话框 */
   window.$dialog = useDialog();
 };
 
-// Naive 功能组件
+/* Naive 功能组件 */
 const NaiveProviderContent = defineComponent({
   name: 'NaiveProviderContent',
   setup() {

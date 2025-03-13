@@ -109,7 +109,7 @@ const menuX = ref(0)
 const menuY = ref(0)
 const selectedItem = ref(null)
 
-// 右键菜单选项
+/* 右键菜单选项 */
 const dropdownOptions = [
   {
     label: '从捷径坞移除',
@@ -167,7 +167,7 @@ onUnmounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .toolbar {
   display: flex;
   justify-content: center;

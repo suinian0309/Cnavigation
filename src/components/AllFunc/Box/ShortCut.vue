@@ -41,7 +41,7 @@
       </n-scrollbar>
     </div>
     <div v-else class="not-shortcut">
-      <span class="tip">暂无捷径，去添加吧</span>
+      <span class="tip">暂无捷径，去添加</span>
       <n-button strong secondary @click="addShortcutModalOpen">
         <template #icon>
           <SvgIcon iconName="icon-add" />
@@ -118,7 +118,7 @@
         <n-button class="option-button" @click="selectFolder">
           <div class="button-content">
             <SvgIcon iconName="icon-folder-closed" />
-            <span>收纳夹</span>
+            <span>收纳夹</span>  
           </div>
           <div class="button-value">
             <span>{{ addShortcutValue.folder === 'none' ? '无' : addShortcutValue.folder }}</span>
@@ -182,29 +182,29 @@ const { shortcutData } = storeToRefs(site);
 const $message = useMessage();
 const $dialog = useDialog();
 
-// 图标渲染
+/* 图标渲染 */
 const renderIcon = (icon) => {
   return () => {
     return h(SvgIcon, { iconName: `icon-${icon}` }, null);
   };
 };
 
-// 添加捷径数据
+/* 添加捷径数据 */
 const addShortcutRef = ref(null);
 const addShortcutModalShow = ref(false);
-const addShortcutModalType = ref(false); // false 添加 / true 编辑
+const addShortcutModalType = ref(false); /* false 添加 / true 编辑 */
 const addShortcutValue = ref({
   id: null,
   name: "",
   url: "",
-  icon: "auto", // 自动图标
-  folder: "none" // 收纳夹，默认为无
+  icon: "auto", /* 自动图标 */
+  folder: "none" /* 收纳夹，默认为无 */
 });
 const addShortcutRules = {
   id: {
     required: true,
     type: "number",
-    message: "请输入合法 ID",
+    message: "请输入合集ID",
     trigger: ["input", "blur"],
   },
   name: {
@@ -226,7 +226,7 @@ const addShortcutRules = {
   },
 };
 
-// 右键菜单数据
+/* 右键菜单数据 */
 const shortCutDropdownX = ref(0);
 const shortCutDropdownY = ref(0);
 const shortCutDropdownShow = ref(false);
@@ -243,7 +243,7 @@ const shortCutDropdownOptions = [
   },
 ];
 
-// 关闭弹窗
+/* 关闭弹窗 */
 const addShortcutClose = () => {
   addShortcutModalShow.value = false;
   addShortcutValue.value = {
@@ -255,27 +255,27 @@ const addShortcutClose = () => {
   };
 };
 
-// 选择图标
+/* 选择图标 */
 const selectIcon = () => {
-  // 这里可以实现图标选择的逻辑
-  // 可以使用下拉菜单或弹窗展示图标选项
+  /* 这里可以实现图标选择的逻辑 */
+  /* 可以使用下拉菜单或弹窗展示图标选项 */
   $message.info("图标选择功能即将完善");
 };
 
-// 选择收纳夹
+/* 选择收纳�?*/
 const selectFolder = () => {
-  // 这里可以实现收纳夹选择的逻辑
-  // 可以使用下拉菜单或弹窗展示收纳夹选项
+  /* 这里可以实现收纳夹选择的逻辑 */
+  /* 可以使用下拉菜单或弹窗展示收纳夹选项 */
   $message.info("收纳夹功能即将完善");
 };
 
-// 开启添加捷径
+/* 开启添加捷径 */
 const addShortcutModalOpen = () => {
-  // 生成 ID
+  /* 生成 ID */
   const shortcutMaxID = shortcutData.value.reduce((max, item) => {
     return item.id > max ? item.id : max;
   }, -1);
-  // 生成表单数据
+  /* 生成表单数据 */
   addShortcutValue.value = {
     id: shortcutMaxID + 1,
     name: "",
@@ -287,16 +287,16 @@ const addShortcutModalOpen = () => {
   addShortcutModalShow.value = true;
 };
 
-// 添加或编辑捷径
+/* 添加或编辑捷�?*/
 const addOrEditShortcuts = () => {
   addShortcutRef.value?.validate((errors) => {
     if (errors) {
       $message.error("请检查您的输入");
       return false;
     }
-    // 新增捷径
+    /* 新增捷径 */
     if (!addShortcutModalType.value) {
-      // 是否重复
+      /* 是否重复 */
       const isDuplicate = shortcutData.value?.some(
         (item) =>
           item.name === addShortcutValue.value.name || item.url === addShortcutValue.value.url,
@@ -307,7 +307,7 @@ const addOrEditShortcuts = () => {
       }
       shortcutData.value.push({
         id: addShortcutValue.value.id,
-        name: addShortcutValue.value.name || "未命名", // 如果名称为空，设置默认值
+        name: addShortcutValue.value.name || "未命名", /* 如果名称为空，设置默认名称 */
         url: addShortcutValue.value.url,
         icon: addShortcutValue.value.icon,
         folder: addShortcutValue.value.folder,
@@ -316,7 +316,7 @@ const addOrEditShortcuts = () => {
       addShortcutClose();
       return true;
     } else {
-      // 编辑捷径
+      /* 编辑捷径 */
       const index = shortcutData.value.findIndex((item) => item.id === addShortcutValue.value.id);
       if (index === -1) {
         $message.error("捷径中不存在该项，请重试");
@@ -333,14 +333,14 @@ const addOrEditShortcuts = () => {
   });
 };
 
-// 删除捷径
+/* 删除捷径 */
 const delShortcuts = () => {
   const deleteId = addShortcutValue.value.id;
   if (typeof deleteId === "number") {
     const indexToRemove = shortcutData.value.findIndex((item) => item.id === deleteId);
     if (indexToRemove !== -1) {
       shortcutData.value.splice(indexToRemove, 1);
-      // 将后续元素的 id 前移一位
+      /* 将后续元素的 id 前移一格 */
       for (let i = indexToRemove; i < shortcutData.value.length; i++) {
         shortcutData.value[i].id = i;
       }
@@ -353,11 +353,11 @@ const delShortcuts = () => {
   }
 };
 
-// 开启右键菜单
+/* 开启右键菜单 */
 const shortCutContextmenu = (e, data) => {
   e.preventDefault();
   shortCutDropdownShow.value = false;
-  // 写入弹窗数据
+  /* 写入弹窗数据 */
   const { id, name, url } = data;
   addShortcutValue.value = { id, name, url };
   nextTick().then(() => {
@@ -367,7 +367,7 @@ const shortCutContextmenu = (e, data) => {
   });
 };
 
-// 右键菜单点击
+/* 右键菜单点击 */
 const shortCutDropdownSelect = (key) => {
   shortCutDropdownShow.value = false;
   console.log(key);
@@ -392,10 +392,10 @@ const shortCutDropdownSelect = (key) => {
   }
 };
 
-// 捷径跳转
+/* 捷径跳转 */
 const shortCutJump = (url) => {
   const urlRegex = /^(https?:\/\/)/i;
-  const urlFormat = urlRegex.test(url) ? url : `//${url}`;
+  const urlFormat = urlRegex.test(url) ? url : `http://${url}`;
   if (set.urlJumpType === "href") {
     window.location.href = urlFormat;
   } else if (set.urlJumpType === "open") {
@@ -404,7 +404,7 @@ const shortCutJump = (url) => {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .shortcut {
   width: 100%;
   height: 100%;
@@ -474,7 +474,7 @@ const shortCutJump = (url) => {
 }
 </style>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .shortcut-form {
   .form-item {
     margin-bottom: 16px;

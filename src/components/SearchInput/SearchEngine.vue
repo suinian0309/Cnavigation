@@ -76,7 +76,7 @@ import defaultEngine from "@/assets/defaultEngine.json";
 const set = setStore();
 const status = statusStore();
 
-// 自定义搜索引擎数据
+/* 自定义搜索引擎数据 */
 const customEngineRef = ref(null);
 const customEngineModal = ref(false);
 const customEngineValue = ref({
@@ -97,17 +97,17 @@ const customEngineRules = {
   },
 };
 
-// 更换搜索引擎
+/* 更换搜索引擎 */
 const changeSearchEngine = (key) => {
-  // 获取元素
+  /* 获取元素 */
   const mainInput = document.getElementById("main-input");
-  // 更改状态
+  /* 更改状态 */
   set.setSearchEngine(key);
   status.setEngineChangeStatus(false);
   mainInput?.focus();
 };
 
-// 点击自定义搜索引擎
+/* 点击自定义搜索引擎 */
 const customEngineClick = () => {
   if (set.customEngineUrl) {
     changeSearchEngine("custom");
@@ -117,7 +117,7 @@ const customEngineClick = () => {
   }
 };
 
-// 自定义搜索引擎
+/* 自定义搜索引擎 */
 const setCustomEngine = () => {
   customEngineRef.value?.validate((errors) => {
     if (!errors) {
@@ -131,7 +131,7 @@ const setCustomEngine = () => {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .engine-choose {
   position: absolute;
   top: 50px;

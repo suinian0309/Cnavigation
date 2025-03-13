@@ -1,0 +1,14 @@
+G:\Cnavigation\src\App.vue
+G:\Cnavigation\src\components\Cover.vue
+G:\Cnavigation\src\components\Hitokoto.vue
+G:\Cnavigation\src\components\Provider.vue
+G:\Cnavigation\src\components\SvgIcon.vue
+G:\Cnavigation\src\components\Toolbar.vue
+G:\Cnavigation\src\components\WeatherTime.vue
+G:\Cnavigation\src\components\AllFunc\AllBox.vue
+G:\Cnavigation\src\components\AllFunc\AllFunc.vue
+G:\Cnavigation\src\components\AllFunc\AllSet.vue
+G:\Cnavigation\src\components\AllFunc\Box\ShortCut.vue
+G:\Cnavigation\src\components\SearchInput\SearchEngine.vue
+G:\Cnavigation\src\components\SearchInput\SearchInp.vue
+G:\Cnavigation\src\components\SearchInput\Suggestions.vue

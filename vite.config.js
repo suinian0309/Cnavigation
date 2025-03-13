@@ -110,10 +110,9 @@ export default defineConfig({
   },
   css: {
     preprocessorOptions: {
-      scss: {
-        charset: false
-      }
-    }
+      // 移除 scss 配置
+    },
+    devSourcemap: true
   },
   publicDir: 'public'
 });

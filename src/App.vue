@@ -78,16 +78,16 @@ const status = statusStore();
 const site = siteStore();
 const mainClickable = ref(false);
 
-// 获取配置
+/* 获取配置 */
 const welcomeText = import.meta.env.VITE_WELCOME_TEXT ?? "欢迎访问本站";
 
-// 鼠标右键
+/* 鼠标右键 */
 const mainContextmenu = (event) => {
   event.preventDefault();
   status.setSiteStatus("box");
 };
 
-// 加载完成事件
+/* 加载完成事件 */
 const loadComplete = () => {
   nextTick().then(() => {
     mainClickable.value = true;
@@ -98,26 +98,26 @@ const loadComplete = () => {
   });
 };
 
-// 全局键盘事件
+/* 全局键盘事件 */
 const mainPressKeyboard = (event) => {
   const keyCode = event.keyCode;
-  // 回车
+  /* 回车 */
   if (keyCode === 13) {
-    // focus 元素
+    /* focus 元素 */
     const mainInput = document.getElementById("main-input");
     status.setSiteStatus("focus");
     mainInput?.focus();
   }
 };
 
-// 根据主题类别更改
+/* 根据主题类别更改 */
 const changeThemeType = (val) => {
   const htmlElement = document.querySelector("html");
   const themeType = val === "light" ? "light" : "dark";
   htmlElement.setAttribute("theme", themeType);
 };
 
-// 监听颜色变化
+/* 监听颜色变化 */
 watch(
   () => set.themeType,
   (val) => changeThemeType(val),
@@ -129,7 +129,7 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 #main,
 #loading {
   position: absolute;

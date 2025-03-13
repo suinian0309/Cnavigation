@@ -6,8 +6,8 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import SvgIcon from "@/components/SvgIcon.vue";
 // 主组件
 import App from "@/App.vue";
-// 全局样式
-import "@/style/global.scss";
+// 全局样式 - 使用 PostCSS 替代 Sass
+import "@/style/postcss/global.pcss";
 
 // 确保 SVG 图标已加载
 if (typeof window._iconfont_svg_string_theme_ === 'undefined' || 

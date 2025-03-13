@@ -53,16 +53,16 @@ import { statusStore, setStore } from "@/stores";
 const set = setStore();
 const status = statusStore();
 
-// 时间数据
+/* 时间数据 */
 const timeData = ref({});
 const timeInterval = ref(null);
 
-// 更新时间
+/* 更新时间 */
 const updateTimeData = () => {
   timeData.value = getCurrentTime(set.showZeroTime, set.use12HourFormat);
 };
 
-// 监听配置发生改变
+/* 监听配置发生改变 */
 watch(
   () => [set.showZeroTime, set.use12HourFormat],
   () => {
@@ -71,7 +71,7 @@ watch(
 );
 
 onMounted(() => {
-  // 时间
+  /* 时间 */
   updateTimeData();
   timeInterval.value = setInterval(updateTimeData, 1000);
 });
@@ -81,7 +81,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .weather-time {
   position: absolute;
   display: flex;

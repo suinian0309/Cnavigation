@@ -306,7 +306,7 @@ const recoverRef = ref(null);
 const customCoverModal = ref(false);
 const customCoverUrl = ref("");
 
-// 壁纸类别
+/* 壁纸类别 */
 const backgroundTypeArr = [
   { name: "本地默认", tip: "默认壁纸，随机更换" },
   { name: "每日必应", tip: "必应每日一图，每天更新" },
@@ -314,7 +314,7 @@ const backgroundTypeArr = [
   { name: "随机动漫", tip: "随机二次元图，随机更换" },
 ];
 
-// 主题类别
+/* 主题类别 */
 const themeTypeOptions = [
   {
     label: "浅色模式",
@@ -326,7 +326,7 @@ const themeTypeOptions = [
   },
 ];
 
-// 切换壁纸
+/* 切换壁纸 */
 const changeBackground = (type, reset = false) => {
   if (reset) {
     $dialog.warning({
@@ -345,7 +345,7 @@ const changeBackground = (type, reset = false) => {
   $message.success(`已切换为${backgroundTypeArr[type].name}，刷新后生效`);
 };
 
-// 链接跳转方式
+/* 链接跳转方式 */
 const urlJumpTypeOptions = [
   {
     label: "新页面打开",
@@ -357,7 +357,7 @@ const urlJumpTypeOptions = [
   },
 ];
 
-// 时钟样式
+/* 时钟样式 */
 const timeStyleOptions = [
   {
     label: "横向排布",
@@ -369,7 +369,7 @@ const timeStyleOptions = [
   },
 ];
 
-// 自定义壁纸
+/* 自定义壁纸 */
 const setCustomCover = () => {
   if (identifyInput(customCoverUrl.value) === "url") {
     backgroundType.value = 4;
@@ -381,7 +381,7 @@ const setCustomCover = () => {
   }
 };
 
-// 站点重置
+/* 站点重置 */
 const resetSite = () => {
   $dialog.warning({
     title: "站点重置",
@@ -398,7 +398,7 @@ const resetSite = () => {
   });
 };
 
-// 站点备份
+/* 站点备份 */
 const backupSite = () => {
   try {
     const date = new Date();
@@ -415,7 +415,7 @@ const backupSite = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    // 备份完成
+    /* 备份完成 */
     $message.success("站点备份成功");
   } catch (error) {
     console.error("站点备份失败：", error);
@@ -423,7 +423,7 @@ const backupSite = () => {
   }
 };
 
-// 站点恢复
+/* 站点恢复 */
 const recoverSite = async () => {
   try {
     const fileInput = recoverRef.value;
@@ -434,7 +434,7 @@ const recoverSite = async () => {
     const file = fileInput.files[0];
     const jsonData = await file.text();
     const data = JSON.parse(jsonData);
-    // 恢复数据
+    /* 恢复数据 */
     $dialog.warning({
       title: "站点恢复",
       content: "确认使用该恢复文件？你现有的数据以及自定义设置都将被覆盖！",
@@ -462,12 +462,12 @@ const recoverSite = async () => {
 };
 
 onMounted(() => {
-  // 检测是否存在自定义壁纸
+  /* 检测是否存在自定义壁纸 */
   if (backgroundCustom.value) customCoverUrl.value = backgroundCustom.value;
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .all-set {
   overflow: hidden;
   height: 100%;
@@ -685,7 +685,7 @@ onMounted(() => {
     }
   }
   
-  // 自定义壁纸模态框
+  /* 自定义壁纸模态框 */
   :deep(.n-modal) {
     background: var(--main-background-light-color);
     backdrop-filter: blur(20px);
@@ -718,7 +718,7 @@ onMounted(() => {
     }
   }
   
-  // 壁纸选择
+  /* 壁纸选择 */
   .cover-selete {
     width: 100%;
     margin-top: 16px;

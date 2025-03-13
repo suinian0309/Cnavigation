@@ -28,21 +28,21 @@ const imgTimeout = ref(null);
 const preloadImage = ref(null);
 const emit = defineEmits(["loadComplete"]);
 
-// 壁纸随机数
-// 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字
+/* 壁纸随机数 */
+/* 请依据文件夹内的图片个数修改 Math.random() 后面的第一个数字 */
 const bgRandom = Math.floor(Math.random() * 3 + 1);
 
-// 缓存相关
+/* 缓存相关 */
 const CACHE_KEY = 'wallpaper_cache';
-const CACHE_EXPIRE = 24 * 60 * 60 * 1000; // 24小时
+const CACHE_EXPIRE = 24 * 60 * 60 * 1000; /* 24小时 */
 
-// 获取缓存的壁纸
+/* 获取缓存的壁纸 */
 const getCachedWallpaper = () => {
   try {
     const cache = localStorage.getItem(CACHE_KEY);
     if (cache) {
       const { url, timestamp, type } = JSON.parse(cache);
-      // 检查缓存是否过期和类型是否匹配
+      /* 检查缓存是否过期和类型是否匹配 */
       if (Date.now() - timestamp < CACHE_EXPIRE && type === set.backgroundType) {
         return url;
       }
@@ -53,7 +53,7 @@ const getCachedWallpaper = () => {
   return null;
 };
 
-// 设置壁纸缓存
+/* 设置壁纸缓存 */
 const setCachedWallpaper = (url) => {
   try {
     const cache = {
@@ -67,7 +67,7 @@ const setCachedWallpaper = (url) => {
   }
 };
 
-// 预加载图片
+/* 预加载图片 */
 const preloadWallpaper = (url) => {
   return new Promise((resolve, reject) => {
     if (!url) {
@@ -87,11 +87,11 @@ const preloadWallpaper = (url) => {
   });
 };
 
-// 获取必应壁纸
+/* 获取必应壁纸 */
 const getBingWallpaper = async () => {
   try {
     const isMobile = window.innerWidth < 768;
-    // 使用新的API路径
+    /* 使用新的API路径 */
     const response = await fetch('/api/wallpaper/bing');
     const data = await response.json();
     
@@ -99,33 +99,33 @@ const getBingWallpaper = async () => {
       return `https://cn.bing.com${data.url}`;
     }
     
-    // 如果API返回失败，使用备用链接
+    /* 如果API返回失败，使用备用链接 */
     return isMobile 
       ? 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1080x1920.jpg'
       : 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1920x1080.jpg';
   } catch (error) {
     console.error('获取必应壁纸失败:', error);
-    // 使用固定的备用图片
+    /* 使用固定的备用图片 */
     return isMobile 
       ? 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1080x1920.jpg'
       : 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1920x1080.jpg';
   }
 };
 
-// 赋值壁纸
+/* 赋值壁纸 */
 const setBgUrl = async () => {
   const { backgroundType } = set;
   try {
-    // 先尝试使用缓存
+    /* 先尝试使用缓存 */
     const cachedUrl = getCachedWallpaper();
     if (cachedUrl) {
       currentBgUrl.value = cachedUrl;
-      // 在后台更新新的壁纸
+      /* 在后台更新新的壁纸 */
       updateWallpaper();
       return;
     }
 
-    // 如果没有缓存，直接获取新壁纸
+    /* 如果没有缓存，直接获取新壁纸 */
     await updateWallpaper();
   } catch (error) {
     console.error("设置壁纸URL时出错：", error);
@@ -133,7 +133,7 @@ const setBgUrl = async () => {
   }
 };
 
-// 更新壁纸
+/* 更新壁纸 */
 const updateWallpaper = async () => {
   const { backgroundType } = set;
   let url;
@@ -159,16 +159,16 @@ const updateWallpaper = async () => {
         url = `/background/bg${bgRandom}.jpg`;
     }
 
-    // 预加载新壁纸
+    /* 预加载新壁纸 */
     await preloadWallpaper(url);
     
-    // 更新当前显示的壁纸
+    /* 更新当前显示的壁纸 */
     currentBgUrl.value = url;
     
-    // 缓存壁纸
+    /* 缓存壁纸 */
     setCachedWallpaper(url);
 
-    // 如果是在线壁纸，预加载下一张
+    /* 如果是在线壁纸，预加载下一张 */
     if (backgroundType > 0 && backgroundType < 4) {
       preloadNextWallpaper();
     }
@@ -178,7 +178,7 @@ const updateWallpaper = async () => {
   }
 };
 
-// 预加载下一张壁纸
+/* 预加载下一张壁纸 */
 const preloadNextWallpaper = async () => {
   try {
     const { backgroundType } = set;
@@ -189,10 +189,10 @@ const preloadNextWallpaper = async () => {
         nextUrl = await getBingWallpaper();
         break;
       case 2:
-        nextUrl = "https://api.ixiaowai.cn/gqapi/gqapi.php";
+        nexturl = "https://api.ixiaowai.cn/gqapi/gqapi.php";
         break;
       case 3:
-        nextUrl = "https://api.ixiaowai.cn/api/api.php";
+        nexturl = "https://api.ixiaowai.cn/api/api.php";
         break;
       default:
         return;
@@ -205,7 +205,7 @@ const preloadNextWallpaper = async () => {
   }
 };
 
-// 图片加载完成
+/* 图片加载完成 */
 const imgLoadComplete = () => {
   imgTimeout.value = setTimeout(
     () => {
@@ -216,14 +216,14 @@ const imgLoadComplete = () => {
   );
 };
 
-// 图片动画完成
+/* 图片动画完成 */
 const imgAnimationEnd = () => {
   console.log("壁纸加载且动画完成");
-  // 加载完成事件
+  /* 加载完成事件 */
   emit("loadComplete");
 };
 
-// 图片显示失败
+/* 图片显示失败 */
 const imgLoadError = () => {
   console.error("壁纸加载失败：", currentBgUrl.value);
   if (set.backgroundType !== 0) {
@@ -231,7 +231,7 @@ const imgLoadError = () => {
     $message.error("壁纸加载失败，已切换为本地壁纸");
     setBgUrl();
   } else {
-    // 如果本地壁纸也加载失败，尝试其他备选壁纸
+    /* 如果本地壁纸也加载失败，尝试其他备选壁纸 */
     const fallbackUrls = [
       "https://api.ixiaowai.cn/gqapi/gqapi.php",
       "https://api.ixiaowai.cn/api/api.php",
@@ -249,7 +249,7 @@ const imgLoadError = () => {
   }
 };
 
-// 监听壁纸类型变化
+/* 监听壁纸类型变化 */
 watch(
   () => set.backgroundType,
   () => {
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .cover {
   width: 100%;
   height: 100%;

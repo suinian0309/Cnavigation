@@ -36,7 +36,7 @@ const message = useMessage();
 const hitokotoData = ref({ content: '', source: '' });
 const showMenu = ref(false);
 
-// 菜单选项
+/* 菜单选项 */
 const menuOptions = [
   {
     label: '复制',
@@ -55,14 +55,14 @@ const menuOptions = [
   }
 ];
 
-// 渲染菜单项
+/* 渲染菜单项 */
 const renderLabel = (option) => {
   return h('div', { class: 'menu-item' }, [
     option.label
   ]);
 };
 
-// 点击效果
+/* 点击效果 */
 const handleClick = () => {
   const hitokoto = document.querySelector('.hitokoto');
   hitokoto.classList.add('click-effect');
@@ -71,7 +71,7 @@ const handleClick = () => {
   }, 300);
 };
 
-// 处理菜单选择
+/* 处理菜单选择 */
 const handleSelect = (key) => {
   const text = `${hitokotoData.value.content} —— ${hitokotoData.value.source}`;
   
@@ -87,13 +87,13 @@ const handleSelect = (key) => {
       window.open(`https://www.baidu.com/s?wd=${encodeURIComponent(hitokotoData.value.content)}`);
       break;
     case 'note':
-      // TODO: 实现收藏到便笺的功能
+      /* TODO: 实现收藏到便笺的功能 */
       message.info('便笺功能开发中');
       break;
   }
 };
 
-// 获取一言
+/* 获取一言 */
 const fetchHitokoto = async () => {
   const data = await getHitokoto();
   if (data) {
@@ -106,7 +106,7 @@ onMounted(() => {
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .hitokoto-container {
   position: fixed;
   bottom: 140px;
@@ -243,7 +243,7 @@ onMounted(() => {
   }
 }
 
-// 淡入淡出动画
+/* 淡入淡出动画 */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

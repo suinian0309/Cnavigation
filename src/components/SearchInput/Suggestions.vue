@@ -74,23 +74,23 @@ const status = statusStore();
 const siteData = siteStore();
 const emit = defineEmits(["toSearch"]);
 
-// 搜索关键字
+/* 搜索关键字 */
 const searchKeyword = ref(null);
-// 搜索关键字类别
+/* 搜索关键字类别 */
 const searchKeywordType = ref("text");
-// 快捷翻译元素
+/* 快捷翻译元素 */
 const translationBoxRef = ref(null);
 
-// 接收搜索框内容
+/* 接收搜索框内容 */
 const props = defineProps({
-  // 搜索关键字
+  /* 搜索关键字 */
   keyWord: {
     type: String,
     required: true,
   },
 });
 
-// 过滤搜索历史，只显示包含当前搜索关键词的记录
+/* 过滤搜索历史，只显示包含当前搜索关键词的记录 */
 const filteredHistory = computed(() => {
   if (!searchKeyword.value) return siteData.searchHistory;
   return siteData.searchHistory.filter(item => 
@@ -98,28 +98,28 @@ const filteredHistory = computed(() => {
   );
 });
 
-// 搜索框输入处理
+/* 搜索框输入处理 */
 const keywordsSearch = debounce((val) => {
   const searchValue = val?.trim();
-  // 是否为空
+  /* 是否为空 */
   if (!searchValue || searchValue === "") {
     searchKeyword.value = null;
     return false;
   }
-  // 关闭切换搜索引擎
+  /* 关闭切换搜索引擎 */
   status.setEngineChangeStatus(false);
-  // 赋值关键字
+  /* 赋值关键字 */
   searchKeyword.value = searchValue;
-  // 判断输入类型
+  /* 判断输入类型 */
   searchKeywordType.value = identifyInput(searchValue);
 }, 300);
 
-// 响应键盘事件
+/* 响应键盘事件 */
 const keyboardEvents = (keyCode, event) => {
   try {
-    // 获取元素
+    /* 获取元素 */
     const mainInput = document.getElementById("main-input");
-    // 13 回车
+    /* 13 回车 */
     if (keyCode === 13) {
       toSearch(mainInput.value, 1);
     }
@@ -128,38 +128,38 @@ const keyboardEvents = (keyCode, event) => {
   }
 };
 
-// 触发父组件搜索事件
+/* 触发父组件搜索事件 */
 const toSearch = (val, type = 1) => {
   const searchValue = val?.trim();
   if (!searchValue) return;
   
-  // 如果是普通搜索，添加到历史记录
+  /* 如果是普通搜索，添加到历史记录 */
   if (type === 1) {
     siteData.addSearchHistory(searchValue);
   }
   
   emit("toSearch", searchValue, type);
-  status.setSiteStatus('normal'); // 搜索后关闭建议框
+  status.setSiteStatus('normal'); /* 搜索后关闭建议框 */
 };
 
-// 监听搜索框变化
+/* 监听搜索框变化 */
 watch(
   () => props.keyWord,
   (val) => {
     if (set.showSuggestions) {
-      // 判断类型
+      /* 判断类型 */
       searchKeywordType.value = identifyInput(val);
-      // 处理搜索框输入
+      /* 处理搜索框输入 */
       keywordsSearch(val);
     }
   },
 );
 
-// 暴露方法
+/* 暴露方法 */
 defineExpose({ keyboardEvents });
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 .translation-container {
   position: absolute;
   bottom: 100%;
