@@ -51,9 +51,15 @@
         <div v-if="filteredHistory.length > 0" class="history-section">
           <div class="section-title">
             <span>搜索历史</span>
-            <span class="clear" @click.stop="siteData.clearSearchHistory">清除</span>
+            <span class="clear" @click.stop="clearSearchHistory">清除</span>
           </div>
-          <div v-for="item in filteredHistory" :key="item" class="s-result" @click.stop="toSearch(item, 1)">
+          <div 
+            v-for="item in filteredHistory" 
+            :key="item" 
+            class="s-result" 
+            @click.stop="toSearch(item, 1)"
+            v-memo="[item]"
+          >
             <SvgIcon iconName="icon-history" />
             <span class="text">{{ item }}</span>
           </div>
@@ -64,10 +70,11 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onBeforeUnmount } from "vue";
 import { statusStore, setStore, siteStore } from "@/stores";
-import debounce from "@/utils/debounce";
+import { debounce, throttle, createCancelableDebounce } from "@/utils/eventUtils";
 import identifyInput from "@/utils/identifyInput";
+import { getSearchSuggestions } from "@/api";
 
 const set = setStore();
 const status = statusStore();
@@ -80,6 +87,8 @@ const searchKeyword = ref(null);
 const searchKeywordType = ref("text");
 /* 快捷翻译元素 */
 const translationBoxRef = ref(null);
+/* 是否正在获取建议 */
+const isFetchingSuggestions = ref(false);
 
 /* 接收搜索框内容 */
 const props = defineProps({
@@ -98,8 +107,8 @@ const filteredHistory = computed(() => {
   );
 });
 
-/* 搜索框输入处理 */
-const keywordsSearch = debounce((val) => {
+/* 可取消的防抖函数 */
+const debouncedKeywordSearch = createCancelableDebounce((val) => {
   const searchValue = val?.trim();
   /* 是否为空 */
   if (!searchValue || searchValue === "") {
@@ -114,8 +123,23 @@ const keywordsSearch = debounce((val) => {
   searchKeywordType.value = identifyInput(searchValue);
 }, 300);
 
-/* 响应键盘事件 */
-const keyboardEvents = (keyCode, event) => {
+/* 获取搜索建议 */
+const fetchSuggestions = async (keyword) => {
+  if (isFetchingSuggestions.value || !keyword || !set.showSuggestions) return;
+  
+  try {
+    isFetchingSuggestions.value = true;
+    // 这里可以调用 API 获取搜索建议
+    // 目前使用历史记录作为建议，所以不需要额外的 API 调用
+  } catch (error) {
+    console.error('获取搜索建议失败:', error);
+  } finally {
+    isFetchingSuggestions.value = false;
+  }
+};
+
+/* 响应键盘事件 - 使用节流 */
+const keyboardEvents = throttle((keyCode, event) => {
   try {
     /* 获取元素 */
     const mainInput = document.getElementById("main-input");
@@ -126,10 +150,10 @@ const keyboardEvents = (keyCode, event) => {
   } catch (error) {
     console.error("键盘事件出现错误：" + error);
   }
-};
+}, 100);
 
-/* 触发父组件搜索事件 */
-const toSearch = (val, type = 1) => {
+/* 触发父组件搜索事件 - 使用节流 */
+const toSearch = throttle((val, type = 1) => {
   const searchValue = val?.trim();
   if (!searchValue) return;
   
@@ -140,7 +164,12 @@ const toSearch = (val, type = 1) => {
   
   emit("toSearch", searchValue, type);
   status.setSiteStatus('normal'); /* 搜索后关闭建议框 */
-};
+}, 300);
+
+/* 清除搜索历史 - 使用节流 */
+const clearSearchHistory = throttle(() => {
+  siteData.clearSearchHistory();
+}, 300);
 
 /* 监听搜索框变化 */
 watch(
@@ -150,13 +179,18 @@ watch(
       /* 判断类型 */
       searchKeywordType.value = identifyInput(val);
       /* 处理搜索框输入 */
-      keywordsSearch(val);
+      debouncedKeywordSearch.execute(val);
     }
   },
 );
 
+/* 组件卸载时取消防抖函数 */
+onBeforeUnmount(() => {
+  debouncedKeywordSearch.cancel();
+});
+
 /* 暴露方法 */
-defineExpose({ keyboardEvents });
+defineExpose({ keyboardEvents, fetchSuggestions });
 </script>
 
 <style lang="postcss" scoped>
@@ -169,6 +203,7 @@ defineExpose({ keyboardEvents });
   pointer-events: none;
   display: flex;
   justify-content: center;
+  z-index: 10;
 
   .translation-box {
     pointer-events: auto;
@@ -182,7 +217,8 @@ defineExpose({ keyboardEvents });
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: all 0.3s ease;
+    transition: all 0.1s ease;
+    will-change: transform; /* 提示浏览器这些属性会变化，优化性能 */
 
     .i-icon {
       opacity: 0.8;
@@ -198,7 +234,6 @@ defineExpose({ keyboardEvents });
     &:hover {
       transform: translateY(-2px);
       background-color: var(--main-background-hover-color);
-      box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
     }
   }
 }
@@ -209,61 +244,68 @@ defineExpose({ keyboardEvents });
   left: 0;
   width: 100%;
   margin-top: 8px;
-  padding: 8px 0;
-  color: var(--main-text-color);
   background-color: var(--main-background-light-color);
-  backdrop-filter: blur(30px) saturate(1.25);
-  border-radius: 16px;
-  transition: all 0.3s ease;
-  z-index: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 10;
+  
   .s-result {
-    cursor: pointer;
-    box-sizing: border-box;
+    padding: 10px 16px;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    padding: 8px 12px;
-    margin: 0 8px;
-    font-size: 14px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-
+    cursor: pointer;
+    transition: background-color 0.1s;
+    
     .i-icon {
       opacity: 0.8;
-      margin-right: 8px;
+      margin-right: 10px;
     }
-
+    
     .text {
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
+    
     &:hover {
       background-color: var(--main-background-hover-color);
     }
   }
-
+  
   .history-section {
     .section-title {
       display: flex;
       justify-content: space-between;
-      padding: 0 20px;
-      margin-bottom: 8px;
-      color: var(--main-text-grey-color);
-      font-size: 0.9em;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 12px;
+      opacity: 0.7;
       
       .clear {
         cursor: pointer;
+        
         &:hover {
-          color: var(--main-text-color);
+          text-decoration: underline;
         }
       }
     }
   }
 }
+
+/* 淡入淡出动画 */
+.fadeDown-enter-active,
+.fadeDown-leave-active {
+  transition: all 0.1s ease;
+}
+
+.fadeDown-enter-from,
+.fadeDown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
 </style>
+

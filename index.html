@@ -13,6 +13,16 @@
   <meta name="author" content="%VITE_SITE_AUTHOR%" />
   <meta name="keywords" content="%VITE_SITE_KEYWORDS%" />
   <meta name="description" content="%VITE_SITE_DES%" />
+  
+  <!-- 关键 CSS 内联 -->
+  <style>
+    /* 关键 CSS 将在构建时注入 */
+  </style>
+  
+  <!-- 预加载关键资源 -->
+  <link rel="preload" href="/lib/theme-font.js" as="script" />
+  <link rel="preload" href="/lib/iconfont.js" as="script" />
+  
   <!-- IE Out -->
   <script>
     if (

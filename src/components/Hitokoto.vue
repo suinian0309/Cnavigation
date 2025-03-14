@@ -1,6 +1,10 @@
 <template>
   <div class="hitokoto-container" @mouseenter="showMenu = true" @mouseleave="showMenu = false">
-    <div class="hitokoto" @click="handleClick">
+    <div 
+      v-memo="[hitokotoData.content, hitokotoData.source]" 
+      class="hitokoto" 
+      @click="handleClick"
+    >
       <span class="content">{{ hitokotoData.content }}</span>
       <span class="source" v-if="hitokotoData.source">—— {{ hitokotoData.source }}</span>
     </div>
@@ -27,17 +31,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, h } from 'vue';
+import { ref, onMounted, h, computed } from 'vue';
 import { getHitokoto } from '@/api';
 import { useMessage, NDropdown } from 'naive-ui';
 import SvgIcon from '@/components/SvgIcon.vue';
+import { debounce } from '@/utils/eventUtils';
 
 const message = useMessage();
 const hitokotoData = ref({ content: '', source: '' });
 const showMenu = ref(false);
+const isLoading = ref(false);
 
 /* 菜单选项 */
-const menuOptions = [
+const menuOptions = computed(() => [
   {
     label: '复制',
     key: 'copy',
@@ -49,11 +55,17 @@ const menuOptions = [
     icon: () => h(SvgIcon, { iconName: 'icon-search' })
   },
   {
+    label: '刷新',
+    key: 'refresh',
+    icon: () => h(SvgIcon, { iconName: 'icon-refresh' }),
+    disabled: isLoading.value
+  },
+  {
     label: '收藏到便笺',
     key: 'note',
     icon: () => h(SvgIcon, { iconName: 'icon-add' })
   }
-];
+]);
 
 /* 渲染菜单项 */
 const renderLabel = (option) => {
@@ -62,14 +74,17 @@ const renderLabel = (option) => {
   ]);
 };
 
-/* 点击效果 */
-const handleClick = () => {
+/* 点击效果 - 使用防抖 */
+const handleClick = debounce(() => {
   const hitokoto = document.querySelector('.hitokoto');
   hitokoto.classList.add('click-effect');
   setTimeout(() => {
     hitokoto.classList.remove('click-effect');
   }, 300);
-};
+  
+  // 点击时刷新一言
+  fetchHitokoto();
+}, 300);
 
 /* 处理菜单选择 */
 const handleSelect = (key) => {
@@ -86,6 +101,9 @@ const handleSelect = (key) => {
     case 'search':
       window.open(`https://www.baidu.com/s?wd=${encodeURIComponent(hitokotoData.value.content)}`);
       break;
+    case 'refresh':
+      fetchHitokoto();
+      break;
     case 'note':
       /* TODO: 实现收藏到便笺的功能 */
       message.info('便笺功能开发中');
@@ -93,11 +111,20 @@ const handleSelect = (key) => {
   }
 };
 
-/* 获取一言 */
+/* 获取一言 - 添加缓存和加载状态 */
 const fetchHitokoto = async () => {
-  const data = await getHitokoto();
-  if (data) {
-    hitokotoData.value = data;
+  if (isLoading.value) return;
+  
+  isLoading.value = true;
+  try {
+    const data = await getHitokoto();
+    if (data) {
+      hitokotoData.value = data;
+    }
+  } catch (error) {
+    console.error('获取一言失败:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -113,7 +140,7 @@ onMounted(() => {
   left: 50%;
   transform: translateX(-50%);
   display: inline-block;
-  padding: 0 30px;
+  padding:0px 30px;
   width: 100%;
   max-width: 600px;
   z-index: 1;
@@ -124,7 +151,7 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.1s ease;
     padding: 10px 20px;
     border-radius: 12px;
     position: relative;
@@ -140,7 +167,7 @@ onMounted(() => {
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.1s ease;
     }
     
     &:hover::before {
@@ -191,7 +218,7 @@ onMounted(() => {
         border-radius: 50%;
         background-color: var(--main-text-color);
         opacity: 0.6;
-        transition: opacity 0.3s;
+        transition: opacity 0.1s;
       }
       
       &:hover span {
@@ -217,7 +244,7 @@ onMounted(() => {
     padding: 8px 12px !important;
     margin: 2px 4px !important;
     border-radius: var(--menu-item-radius) !important;
-    transition: all 0.2s ease-in-out !important;
+    transition: all 0.1s ease-in-out !important;
     color: var(--menu-text) !important;
     
     .n-dropdown-option-body {
@@ -246,7 +273,7 @@ onMounted(() => {
 /* 淡入淡出动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.1s ease;
 }
 
 .fade-enter-from,

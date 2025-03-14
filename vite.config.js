@@ -5,6 +5,13 @@ import path from "path";
 import viteCompression from "vite-plugin-compression";
 import { createHtmlPlugin } from 'vite-plugin-html';
 import { fileURLToPath, URL } from 'url';
+import fs from 'fs';
+
+// 读取关键 CSS
+const criticalCss = fs.readFileSync(
+  path.resolve(__dirname, 'src/style/postcss/critical.pcss'),
+  'utf-8'
+);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,6 +22,7 @@ export default defineConfig({
       inject: {
         data: {
           ...process.env,
+          criticalCss: criticalCss,
         },
       },
     }),
@@ -32,6 +40,10 @@ export default defineConfig({
             handler: "CacheFirst",
             options: {
               cacheName: "file-cache",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 天
+              },
             },
           },
           {
@@ -39,6 +51,48 @@ export default defineConfig({
             handler: "CacheFirst",
             options: {
               cacheName: "image-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 天
+              },
+            },
+          },
+          // 添加对 API 请求的缓存策略
+          {
+            urlPattern: /^https:\/\/v1\.hitokoto\.cn\//,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "hitokoto-api-cache",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60, // 1 小时
+              },
+              networkTimeoutSeconds: 3,
+            },
+          },
+          // 添加对静态资源的缓存策略
+          {
+            urlPattern: /\.(?:js|css)$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "static-resources",
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 天
+              },
+            },
+          },
+          // 添加对其他 API 请求的缓存策略
+          {
+            urlPattern: /^https:\/\/api\./,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "apis-cache",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 10 * 60, // 10 分钟
+              },
+              networkTimeoutSeconds: 5,
             },
           },
         ],

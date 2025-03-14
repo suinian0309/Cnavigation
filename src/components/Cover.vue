@@ -1,15 +1,27 @@
 <template>
   <div :class="status.siteStatus !== 'normal' ? 'cover focus' : 'cover'">
-    <img
-      v-show="status.imgLoadStatus"
-      class="background"
-      alt="background"
-      :src="currentBgUrl"
-      :style="{ '--blur': set.backgroundBlur + 'px' }"
-      @load="imgLoadComplete"
-      @error.once="imgLoadError"
-      @animationend="imgAnimationEnd"
-    />
+    <picture v-show="status.imgLoadStatus">
+      <!-- WebP 格式支持 -->
+      <source 
+        v-if="currentBgWebpUrl" 
+        :srcset="currentBgWebpUrl" 
+        type="image/webp" 
+      />
+      <!-- 原始图片 -->
+      <img
+        class="background"
+        alt="background"
+        :src="currentBgUrl"
+        :srcset="currentBgSrcset"
+        :sizes="'100vw'"
+        loading="eager" 
+        decoding="async"
+        :style="{ '--blur': set.backgroundBlur + 'px' }"
+        @load="imgLoadComplete"
+        @error.once="imgLoadError"
+        @animationend="imgAnimationEnd"
+      />
+    </picture>
     <Transition name="fade">
       <div v-if="set.showBackgroundGray" class="gray" />
     </Transition>
@@ -17,12 +29,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { statusStore, setStore } from "@/stores";
 
 const set = setStore();
 const status = statusStore();
 const currentBgUrl = ref(null);
+const currentBgWebpUrl = ref(null);
+const currentBgSrcset = ref(null);
 const nextBgUrl = ref(null);
 const imgTimeout = ref(null);
 const preloadImage = ref(null);
@@ -36,15 +50,27 @@ const bgRandom = Math.floor(Math.random() * 3 + 1);
 const CACHE_KEY = 'wallpaper_cache';
 const CACHE_EXPIRE = 24 * 60 * 60 * 1000; /* 24小时 */
 
+/* 检测 WebP 支持 */
+const supportsWebp = ref(false);
+const checkWebpSupport = async () => {
+  try {
+    const webpData = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
+    const blob = await fetch(webpData).then(r => r.blob());
+    supportsWebp.value = blob.type === 'image/webp';
+  } catch (e) {
+    supportsWebp.value = false;
+  }
+};
+
 /* 获取缓存的壁纸 */
 const getCachedWallpaper = () => {
   try {
     const cache = localStorage.getItem(CACHE_KEY);
     if (cache) {
-      const { url, timestamp, type } = JSON.parse(cache);
+      const { url, webpUrl, srcset, timestamp, type } = JSON.parse(cache);
       /* 检查缓存是否过期和类型是否匹配 */
       if (Date.now() - timestamp < CACHE_EXPIRE && type === set.backgroundType) {
-        return url;
+        return { url, webpUrl, srcset };
       }
     }
   } catch (error) {
@@ -54,10 +80,12 @@ const getCachedWallpaper = () => {
 };
 
 /* 设置壁纸缓存 */
-const setCachedWallpaper = (url) => {
+const setCachedWallpaper = (url, webpUrl = null, srcset = null) => {
   try {
     const cache = {
       url,
+      webpUrl,
+      srcset,
       timestamp: Date.now(),
       type: set.backgroundType
     };
@@ -96,20 +124,39 @@ const getBingWallpaper = async () => {
     const data = await response.json();
     
     if (data.url) {
-      return `https://cn.bing.com${data.url}`;
+      const baseUrl = `https://cn.bing.com${data.url}`;
+      // 构建响应式图片集
+      const srcset = isMobile 
+        ? `${baseUrl.replace('1920x1080', '800x600')} 800w, ${baseUrl} 1920w`
+        : `${baseUrl.replace('1920x1080', '1280x720')} 1280w, ${baseUrl} 1920w`;
+      
+      return {
+        url: baseUrl,
+        srcset
+      };
     }
     
     /* 如果API返回失败，使用备用链接 */
-    return isMobile 
+    const fallbackUrl = isMobile 
       ? 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1080x1920.jpg'
       : 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1920x1080.jpg';
+    
+    return { url: fallbackUrl };
   } catch (error) {
     console.error('获取必应壁纸失败:', error);
     /* 使用固定的备用图片 */
-    return isMobile 
+    const fallbackUrl = isMobile 
       ? 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1080x1920.jpg'
       : 'https://cn.bing.com/th?id=OHR.CheetahMom_ZH-CN1434325639_1920x1080.jpg';
+    
+    return { url: fallbackUrl };
   }
+};
+
+/* 获取本地壁纸的 WebP 版本 */
+const getLocalWebpUrl = (jpgUrl) => {
+  if (!supportsWebp.value) return null;
+  return jpgUrl.replace('.jpg', '.webp');
 };
 
 /* 赋值壁纸 */
@@ -117,9 +164,11 @@ const setBgUrl = async () => {
   const { backgroundType } = set;
   try {
     /* 先尝试使用缓存 */
-    const cachedUrl = getCachedWallpaper();
-    if (cachedUrl) {
-      currentBgUrl.value = cachedUrl;
+    const cachedData = getCachedWallpaper();
+    if (cachedData) {
+      currentBgUrl.value = cachedData.url;
+      currentBgWebpUrl.value = cachedData.webpUrl;
+      currentBgSrcset.value = cachedData.srcset;
       /* 在后台更新新的壁纸 */
       updateWallpaper();
       return;
@@ -129,23 +178,30 @@ const setBgUrl = async () => {
     await updateWallpaper();
   } catch (error) {
     console.error("设置壁纸URL时出错：", error);
-    currentBgUrl.value = `/background/bg${bgRandom}.jpg`;
+    const localUrl = `/background/bg${bgRandom}.jpg`;
+    currentBgUrl.value = localUrl;
+    currentBgWebpUrl.value = getLocalWebpUrl(localUrl);
   }
 };
 
 /* 更新壁纸 */
 const updateWallpaper = async () => {
   const { backgroundType } = set;
-  let url;
+  let url, webpUrl = null, srcset = null;
 
   try {
     switch (backgroundType) {
-      case 0:
+      case 0: {
         url = `/background/bg${bgRandom}.jpg`;
+        webpUrl = getLocalWebpUrl(url);
         break;
-      case 1:
-        url = await getBingWallpaper();
+      }
+      case 1: {
+        const bingData = await getBingWallpaper();
+        url = bingData.url;
+        srcset = bingData.srcset;
         break;
+      }
       case 2:
         url = "https://api.ixiaowai.cn/gqapi/gqapi.php";
         break;
@@ -157,6 +213,7 @@ const updateWallpaper = async () => {
         break;
       default:
         url = `/background/bg${bgRandom}.jpg`;
+        webpUrl = getLocalWebpUrl(url);
     }
 
     /* 预加载新壁纸 */
@@ -164,9 +221,11 @@ const updateWallpaper = async () => {
     
     /* 更新当前显示的壁纸 */
     currentBgUrl.value = url;
+    currentBgWebpUrl.value = webpUrl;
+    currentBgSrcset.value = srcset;
     
     /* 缓存壁纸 */
-    setCachedWallpaper(url);
+    setCachedWallpaper(url, webpUrl, srcset);
 
     /* 如果是在线壁纸，预加载下一张 */
     if (backgroundType > 0 && backgroundType < 4) {
@@ -185,14 +244,16 @@ const preloadNextWallpaper = async () => {
     let nextUrl;
 
     switch (backgroundType) {
-      case 1:
-        nextUrl = await getBingWallpaper();
+      case 1: {
+        const bingData = await getBingWallpaper();
+        nextUrl = bingData.url;
         break;
+      }
       case 2:
-        nexturl = "https://api.ixiaowai.cn/gqapi/gqapi.php";
+        nextUrl = "https://api.ixiaowai.cn/gqapi/gqapi.php";
         break;
       case 3:
-        nexturl = "https://api.ixiaowai.cn/api/api.php";
+        nextUrl = "https://api.ixiaowai.cn/api/api.php";
         break;
       default:
         return;
@@ -241,6 +302,8 @@ const imgLoadError = () => {
     if (!window._fallbackIndex) window._fallbackIndex = 0;
     if (window._fallbackIndex < fallbackUrls.length) {
       currentBgUrl.value = fallbackUrls[window._fallbackIndex++];
+      currentBgWebpUrl.value = null;
+      currentBgSrcset.value = null;
       $message.warning("本地壁纸加载失败，使用备选壁纸源");
     } else {
       window._fallbackIndex = 0;
@@ -258,11 +321,20 @@ watch(
 );
 
 onMounted(() => {
+  checkWebpSupport();
   setBgUrl();
+  
+  // 添加窗口大小变化监听，以便在屏幕尺寸变化时更新壁纸
+  window.addEventListener('resize', () => {
+    if (set.backgroundType === 1) { // 只对必应壁纸进行响应式处理
+      setBgUrl();
+    }
+  });
 });
 
 onBeforeUnmount(() => {
   clearTimeout(imgTimeout.value);
+  window.removeEventListener('resize', setBgUrl);
 });
 </script>
 
@@ -292,6 +364,7 @@ onBeforeUnmount(() => {
       filter 0.3s,
       transform 0.3s;
     animation: fade-blur-in 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform, filter; /* 提示浏览器这些属性会变化，优化性能 */
   }
   .gray {
     position: absolute;

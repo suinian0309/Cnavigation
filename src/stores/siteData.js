@@ -1,11 +1,18 @@
 import { defineStore } from "pinia";
 import defaultShortCut from "@/assets/defaultShortCut";
+import { getOptimizedStorage, setOptimizedStorage } from "@/utils/storageUtils";
+
+// 快捷方式数据的存储键名
+const SHORTCUT_DATA_KEY = 'optimized_shortcut_data';
 
 const useSiteDataStore = defineStore("siteData", {
   state: () => {
+    // 尝试从优化存储中获取快捷方式数据
+    const optimizedShortcutData = getOptimizedStorage(SHORTCUT_DATA_KEY, defaultShortCut);
+    
     return {
       // 捷径数据
-      shortcutData: defaultShortCut,
+      shortcutData: optimizedShortcutData,
       // 添加搜索历史记录
       searchHistory: [],
     };
@@ -13,6 +20,8 @@ const useSiteDataStore = defineStore("siteData", {
   actions: {
     setShortcutData(value) {
       this.shortcutData = value;
+      // 使用优化存储保存大型数据
+      setOptimizedStorage(SHORTCUT_DATA_KEY, value);
     },
     // 添加搜索历史
     addSearchHistory(keyword) {
@@ -44,11 +53,11 @@ const useSiteDataStore = defineStore("siteData", {
       }
     }
   },
-  // 开启数据持久化
+  // 开启数据持久化 - 只对搜索历史使用标准持久化
   persist: {
     key: "siteData",
     storage: window.localStorage,
-    paths: ["searchHistory", "shortcutData"]
+    paths: ["searchHistory"]
   },
 });
 

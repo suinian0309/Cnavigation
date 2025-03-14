@@ -1,159 +1,167 @@
 <template>
-  <div class="all-box">
-    <!-- 捷径 -->
-    <Transition name="fade" mode="out-in">
-      <div v-if="shortcutData[0]" class="shortcut" @click="handleShortcutClick">
-        <div class="all-shortcut" @click="handleShortcutClick">
-          <div class="shortcut-grid" :class="{ 'dark': isDarkTheme }" @click="handleGridClick">
-            <div
-              v-for="item in shortcutData"
-              :key="item.id"
-              class="shortcut-wrapper"
-              @contextmenu="shortCutContextmenu($event, item)"
-              @click="shortCutJump(item.url)"
-            >
-              <div class="shortcut-item">
-                <SvgIcon v-if="getIconName(item)" :iconName="getIconName(item)" />
-                <img v-else :src="getFaviconUrl(item.url)" class="favicon-img" alt="网站图标" />
-              </div>
-              <div class="shortcut-name">{{ item.name }}</div>
-            </div>
-            <div
-              class="shortcut-wrapper add-wrapper"
-              @contextmenu="
-                (e) => {
-                  e.preventDefault();
-                }
-              "
-              @click="addShortcutModalOpen"
-            >
-              <div class="shortcut-item add-item">
-                <SvgIcon iconName="icon-add" />
-              </div>
-              <div class="shortcut-name">添加网站捷径</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div v-else class="not-shortcut">
-        <span class="tip">暂无捷径，去添加</span>
-        <n-button strong secondary @click="addShortcutModalOpen">
-          <template #icon>
-            <SvgIcon iconName="icon-add" />
-          </template>
-          添加捷径
-        </n-button>
-      </div>
-    </Transition>
-    
-    <!-- 添加捷径 -->
-    <n-modal
-      preset="card"
-      v-model:show="addShortcutModalShow"
-      :title="`${addShortcutModalType ? '编辑' : '添加'}捷径`"
-      :bordered="false"
-      @mask-click="addShortcutClose"
-    >
-      <n-form
-        ref="addShortcutRef"
-        :rules="addShortcutRules"
-        :model="addShortcutValue"
-        :label-width="0"
-        class="shortcut-form"
+  <!-- 有捷径时显示捷径列表 -->
+  <template v-if="shortcutData && shortcutData.length > 0">
+    <div class="shortcuts-container">
+      <div
+        v-for="item in visibleItems"
+        :key="item.id"
+        class="shortcut-item"
+        :style="{
+          position: 'absolute',
+          top: `${item.top}px`,
+          left: `${item.left}px`,
+          width: `${itemWidth}px`,
+          height: `${itemHeight}px`
+        }"
+        @contextmenu.stop="shortCutContextmenu($event, item.data)"
+        @click.stop="shortCutJump(item.data.url)"
       >
-        <n-form-item path="id" style="display: none">
-          <n-input-number
-            disabled
-            placeholder="请输入ID"
-            v-model:value="addShortcutValue.id"
-            style="width: 100%"
-            :show-button="false"
-          />
-        </n-form-item>
-        <n-form-item path="url" class="form-item">
-          <div class="input-wrapper">
-            <div class="input-icon">
-              <SvgIcon iconName="icon-link" />
-            </div>
-            <n-input 
-              clearable 
-              v-model:value="addShortcutValue.url" 
-              placeholder="网址" 
-              class="custom-input"
-              inputmode="url"
-              required
-            />
-          </div>
-        </n-form-item>
-        <n-form-item path="name" class="form-item">
-          <div class="input-wrapper">
-            <div class="input-icon">
-              <SvgIcon iconName="icon-heading" />
-            </div>
-            <n-input
-              clearable
-              v-model:value="addShortcutValue.name"
-              placeholder="标题 - 留空即自动获取"
-              class="custom-input"
-            />
-          </div>
-        </n-form-item>
-        <n-form-item class="form-item">
-          <n-button class="option-button" @click="selectIcon">
-            <div class="button-content">
-              <SvgIcon iconName="icon-icons" />
-              <span>图标</span>
-            </div>
-            <div class="button-value">
-              <span>{{ addShortcutValue.icon === 'auto' ? '自动' : addShortcutValue.icon }}</span>
-              <SvgIcon iconName="icon-angle-right" />
-            </div>
-          </n-button>
-        </n-form-item>
-        <n-form-item class="form-item">
-          <n-button class="option-button" @click="selectFolder">
-            <div class="button-content">
-              <SvgIcon iconName="icon-folder-closed" />
-              <span>收纳夹</span>  
-            </div>
-            <div class="button-value">
-              <span>{{ addShortcutValue.folder === 'none' ? '无' : addShortcutValue.folder }}</span>
-              <SvgIcon iconName="icon-angle-right" />
-            </div>
-          </n-button>
-        </n-form-item>
-      </n-form>
-      <template #footer>
-        <n-space justify="end">
-          <n-button strong secondary @click="addShortcutClose"> 取消 </n-button>
-          <n-button strong secondary @click="addOrEditShortcuts">
-            {{ addShortcutModalType ? "编辑" : "添加" }}
-          </n-button>
-        </n-space>
+        <i class="icon-wrapper" :style="getIconStyle(item.data)">
+          <SvgIcon v-if="getIconName(item.data)" :iconName="getIconName(item.data)" />
+          <img v-else :src="getFaviconUrl(item.data.url)" class="favicon-img" alt="网站图标" />
+        </i>
+        <div class="shortcut-name">{{ item.data.name }}</div>
+      </div>
+      
+      <!-- 添加按钮 -->
+      <div
+        class="shortcut-item add-item"
+        :style="{
+          position: 'absolute',
+          top: `${addButtonTop}px`,
+          left: `${addButtonLeft}px`,
+          width: `${itemWidth}px`,
+          height: `${itemHeight}px`
+        }"
+        @contextmenu.stop.prevent
+        @click.stop="addShortcutModalOpen"
+      >
+        <i class="icon-wrapper">
+          <SvgIcon iconName="icon-add" />
+        </i>
+        <div class="shortcut-name">添加网站捷径</div>
+      </div>
+    </div>
+  </template>
+  
+  <!-- 无捷径时显示空状态 -->
+  <div v-else class="empty-shortcuts">
+    <span class="tip">暂无捷径，去添加</span>
+    <n-button strong secondary @click.stop="addShortcutModalOpen">
+      <template #icon>
+        <SvgIcon iconName="icon-add" />
       </template>
-    </n-modal>
-    
-    <!-- 捷径右键菜单 -->
-    <n-dropdown
-      placement="bottom-start"
-      trigger="manual"
-      size="large"
-      :x="shortCutDropdownX"
-      :y="shortCutDropdownY"
-      :options="shortCutDropdownOptions"
-      :show="shortCutDropdownShow"
-      :on-clickoutside="
-        () => {
-          shortCutDropdownShow = false;
-        }
-      "
-      @select="shortCutDropdownSelect"
-    />
+      添加捷径
+    </n-button>
   </div>
+  
+  <!-- 添加捷径弹窗 -->
+  <n-modal
+    preset="card"
+    v-model:show="addShortcutModalShow"
+    :title="`${addShortcutModalType ? '编辑' : '添加'}捷径`"
+    :bordered="false"
+    @mask-click="addShortcutClose"
+  >
+    <n-form
+      ref="addShortcutRef"
+      :rules="addShortcutRules"
+      :model="addShortcutValue"
+      :label-width="0"
+      class="shortcut-form"
+    >
+      <n-form-item path="id" style="display: none">
+        <n-input-number
+          disabled
+          placeholder="请输入ID"
+          v-model:value="addShortcutValue.id"
+          style="width: 100%"
+          :show-button="false"
+        />
+      </n-form-item>
+      <n-form-item path="url" class="form-item">
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <SvgIcon iconName="icon-link" />
+          </div>
+          <n-input 
+            clearable 
+            v-model:value="addShortcutValue.url" 
+            placeholder="网址" 
+            class="custom-input"
+            inputmode="url"
+            required
+          />
+        </div>
+      </n-form-item>
+      <n-form-item path="name" class="form-item">
+        <div class="input-wrapper">
+          <div class="input-icon">
+            <SvgIcon iconName="icon-heading" />
+          </div>
+          <n-input
+            clearable
+            v-model:value="addShortcutValue.name"
+            placeholder="标题 - 留空即自动获取"
+            class="custom-input"
+          />
+        </div>
+      </n-form-item>
+      <n-form-item class="form-item">
+        <n-button class="option-button" @click="selectIcon">
+          <div class="button-content">
+            <SvgIcon iconName="icon-icons" />
+            <span>图标</span>
+          </div>
+          <div class="button-value">
+            <span>{{ addShortcutValue.icon === 'auto' ? '自动' : addShortcutValue.icon }}</span>
+            <SvgIcon iconName="icon-angle-right" />
+          </div>
+        </n-button>
+      </n-form-item>
+      <n-form-item class="form-item">
+        <n-button class="option-button" @click="selectFolder">
+          <div class="button-content">
+            <SvgIcon iconName="icon-folder-closed" />
+            <span>收纳夹</span>  
+          </div>
+          <div class="button-value">
+            <span>{{ addShortcutValue.folder === 'none' ? '无' : addShortcutValue.folder }}</span>
+            <SvgIcon iconName="icon-angle-right" />
+          </div>
+        </n-button>
+      </n-form-item>
+    </n-form>
+    <template #footer>
+      <n-space justify="end">
+        <n-button strong secondary @click="addShortcutClose"> 取消 </n-button>
+        <n-button strong secondary @click="addOrEditShortcuts">
+          {{ addShortcutModalType ? "编辑" : "添加" }}
+        </n-button>
+      </n-space>
+    </template>
+  </n-modal>
+  
+  <!-- 捷径右键菜单 -->
+  <n-dropdown
+    placement="bottom-start"
+    trigger="manual"
+    size="large"
+    :x="shortCutDropdownX"
+    :y="shortCutDropdownY"
+    :options="shortCutDropdownOptions"
+    :show="shortCutDropdownShow"
+    :on-clickoutside="
+      () => {
+        shortCutDropdownShow = false;
+      }
+    "
+    @select="shortCutDropdownSelect"
+  />
 </template>
 
 <script setup>
-import { ref, nextTick, h, onMounted } from "vue";
+import { ref, nextTick, h, onMounted, computed, onUnmounted, watch } from "vue";
 import {
   NButton,
   NSpace,
@@ -170,6 +178,8 @@ import { storeToRefs } from "pinia";
 import { siteStore, setStore, statusStore } from "@/stores";
 import SvgIcon from "@/components/SvgIcon.vue";
 import identifyInput from "@/utils/identifyInput";
+import { useElementSize } from '@vueuse/core';
+import { throttle } from "@/utils/eventUtils";
 
 const set = setStore();
 const site = siteStore();
@@ -289,6 +299,10 @@ const selectFolder = () => {
 /* 开启添加捷径 */
 const addShortcutModalOpen = () => {
   /* 生成 ID */
+  if (!shortcutData.value) {
+    shortcutData.value = [];
+  }
+  
   const shortcutMaxID = shortcutData.value.reduce((max, item) => {
     return item.id > max ? item.id : max;
   }, -1);
@@ -370,8 +384,8 @@ const delShortcuts = () => {
   }
 };
 
-/* 开启右键菜单 */
-const shortCutContextmenu = (e, data) => {
+/* 开启右键菜单 - 使用节流 */
+const shortCutContextmenu = throttle((e, data) => {
   e.preventDefault();
   shortCutDropdownShow.value = false;
   /* 写入弹窗数据 */
@@ -382,7 +396,7 @@ const shortCutContextmenu = (e, data) => {
     shortCutDropdownX.value = e.clientX;
     shortCutDropdownY.value = e.clientY;
   });
-};
+}, 200);
 
 /* 右键菜单点击 */
 const shortCutDropdownSelect = (key) => {
@@ -408,8 +422,8 @@ const shortCutDropdownSelect = (key) => {
   }
 };
 
-/* 捷径跳转 */
-const shortCutJump = (url) => {
+/* 捷径跳转 - 使用节流 */
+const shortCutJump = throttle((url) => {
   const urlRegex = /^(https?:\/\/)/i;
   const urlFormat = urlRegex.test(url) ? url : `http://${url}`;
   if (set.urlJumpType === "href") {
@@ -417,7 +431,7 @@ const shortCutJump = (url) => {
   } else if (set.urlJumpType === "open") {
     window.open(urlFormat, "_blank");
   }
-};
+}, 300);
 
 /* 获取图标名称 */
 const getIconName = (item) => {
@@ -453,213 +467,225 @@ const getFaviconUrl = (url) => {
   }
 };
 
-/* 处理grid点击事件 */
-const handleGridClick = (event) => {
-  // 如果点击的是shortcut-grid本身（而不是其子元素），则重置站点状态
-  if (event.target.classList.contains('shortcut-grid')) {
-    status.setSiteStatus('normal');
-  }
+/* 获取图标样式 */
+const getIconStyle = (item) => {
+  // 使用半透明白色背景，而不是彩色渐变
+  return {
+    backgroundColor: 'var(--main-background-light-color)'
+  };
 };
 
-/* 处理捷径点击事件 */
-const handleShortcutClick = (event) => {
-  // 如果点击的是shortcut或all-shortcut本身（而不是其子元素），则重置站点状态
-  if (event.target.classList.contains('shortcut') || event.target.classList.contains('all-shortcut')) {
-    status.setSiteStatus('normal');
+// 虚拟滚动相关
+const parentRef = ref(null);
+const { width: containerWidth } = useElementSize(() => document.querySelector('.shortcuts-container'));
+const scrollY = ref(0);
+
+// 监听父容器的滚动事件
+onMounted(() => {
+  const featurePanel = document.querySelector('.feature-panel');
+  if (featurePanel) {
+    featurePanel.addEventListener('scroll', () => {
+      scrollY.value = featurePanel.scrollTop;
+    });
   }
-};
+});
+
+// 移除滚动事件监听
+onUnmounted(() => {
+  const featurePanel = document.querySelector('.feature-panel');
+  if (featurePanel) {
+    featurePanel.removeEventListener('scroll', () => {});
+  }
+});
+
+// 计算每行显示的项目数
+const itemsPerRow = computed(() => {
+  // 默认保持一排5个
+  if (containerWidth.value < 480) return 3;
+  if (containerWidth.value < 768) return 4;
+  return 5;
+});
+
+// 项目尺寸
+const itemWidth = computed(() => Math.min(80, (containerWidth.value / itemsPerRow.value) - 20));
+const itemHeight = ref(90); // 稍微减小高度
+
+// 计算所有项目的位置
+const allItemsWithPosition = computed(() => {
+  const items = [];
+  if (!shortcutData.value || shortcutData.value.length === 0) {
+    return items;
+  }
+  
+  const rows = Math.ceil((shortcutData.value.length + 1) / itemsPerRow.value); // +1 是为了添加按钮
+  const totalWidth = itemsPerRow.value * (itemWidth.value + 14); // 总宽度
+  const startX = Math.max(0, (containerWidth.value - totalWidth) / 2); // 计算起始X坐标，使内容居中
+  
+  shortcutData.value.forEach((item, index) => {
+    const row = Math.floor(index / itemsPerRow.value);
+    const col = index % itemsPerRow.value;
+    
+    items.push({
+      id: item.id,
+      data: item,
+      top: row * (itemHeight.value + 14), // 垂直间距
+      left: startX + col * (itemWidth.value + 14)  // 水平间距，加上起始偏移
+    });
+  });
+  
+  return items;
+});
+
+// 添加按钮位置
+const addButtonTop = computed(() => {
+  if (!shortcutData.value || shortcutData.value.length === 0) {
+    return 0;
+  }
+  
+  const row = Math.floor(shortcutData.value.length / itemsPerRow.value);
+  return row * (itemHeight.value + 14); // 垂直间距
+});
+
+const addButtonLeft = computed(() => {
+  if (!shortcutData.value || shortcutData.value.length === 0) {
+    return 0;
+  }
+  
+  const col = shortcutData.value.length % itemsPerRow.value;
+  const totalWidth = itemsPerRow.value * (itemWidth.value + 14); // 总宽度
+  const startX = Math.max(0, (containerWidth.value - totalWidth) / 2); // 计算起始X坐标，使内容居中
+  
+  return startX + col * (itemWidth.value + 14); // 水平间距，加上起始偏移
+});
+
+// 计算总高度
+const totalHeight = computed(() => {
+  if (!shortcutData.value) {
+    return itemHeight.value;
+  }
+  
+  const rows = Math.ceil((shortcutData.value.length + 1) / itemsPerRow.value);
+  return rows * (itemHeight.value + 14); // 减小垂直间距
+});
+
+// 计算可见项目 - 简化为显示所有项目，不再使用虚拟滚动
+const visibleItems = computed(() => {
+  return allItemsWithPosition.value;
+});
 </script>
 
 <style lang="postcss" scoped>
-.all-box {
+/* 盒子头部 */
+.box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
   width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.shortcut {
-  width: 100%;
-  height: 100%;
   
-  .all-shortcut {
-    padding: 50px;
-    
-    .shortcut-grid {
-      display: grid;
-      grid-gap: 50px;
-      grid-template-columns: repeat(5, 80px);
-      left: 50%;
-      max-height: calc(100vh - 330px);
-      overflow-x: hidden;
-      overflow-y: auto;
-      padding: 10px 30px 30px;
-      position: fixed;
-      scrollbar-width: none;
-      top: 10px;
-      transform: translate(-50%);
-      transition: border-color .25s;
-      border-bottom: 1px solid transparent;
-      border-top: 1px solid transparent;
-      max-width: calc(5 * 100px + 4 * 50px); /* 5个元素宽度 + 4个间隔 */
-      
-      @media screen and (max-width: 768px) {
-        grid-template-columns: repeat(4, 85px);
-        grid-gap: 30px;
-        top: 180px;
-        max-width: calc(4 * 85px + 3 * 30px); /* 4个元素宽度 + 3个间隔 */
-      }
-      
-      @media screen and (max-width: 480px) {
-        grid-template-columns: repeat(3, 80px);
-        grid-gap: 20px;
-        top: 160px;
-        max-width: calc(3 * 80px + 2 * 20px); /* 3个元素宽度 + 2个间隔 */
-      }
-      
-      &::-webkit-scrollbar {
-        width: 0;
-      }
-      
-      &.dark {
-        border-color: rgba(255, 255, 255, .1);
-      }
-      
-      &.no-border-bottom {
-        border-bottom-color: transparent;
-      }
-    }
+  .title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
   }
 }
 
-/* 组件级别的shortcut-wrapper样式 */
-.shortcut-wrapper {
+/* 快捷方式容器 */
+.shortcuts-container {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  margin-bottom: 20px;
+}
+
+/* 空状态 */
+.empty-shortcuts {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 300px;
+  
+  .tip {
+    margin-bottom: 20px;
+    font-size: 16px;
+    opacity: 0.8;
+  }
+}
+
+/* 快捷方式项 */
+.shortcut-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  margin-bottom: 0;
+  transition: transform 0.1s ease;
   
   &:hover {
     transform: translateY(-5px);
+  }
+  
+  /* 图标容器 */
+  .icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: var(--main-background-light-color);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+    margin-bottom: 8px;
+    box-shadow: var(--main-box-shadow);
     
-    .shortcut-item {
-      transform: scale(1.05);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    .shortcut-name {
-      opacity: 1;
-    }
-  }
-  
-  &.add-wrapper {
-    .shortcut-item {
-      background-color: transparent;
-      border: 2px dashed var(--main-border-color);
-      box-shadow: none;
-      
-      &:hover {
-        border-color: var(--main-text-color);
-      }
-    }
-  }
-}
-
-/* 组件级别的shortcut-item样式 */
-.shortcut-item {
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.1s ease;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  background-color: rgba(255, 255, 255, 0.5); /* 浅白色背景 */
-  
-  @media screen and (max-width: 768px) {
-    width: 60px;
-    height: 60px;
-  }
-  
-  :deep(.i-icon) {
-    width: 26px;
-    height: 26px;
-    font-size: 26px;
-    color: var(--main-text-color);
-    display: block;
-    transition: all 0.1s;
-  }
-  
-  .favicon-img {
-    width: 26px;
-    height: 26px;
-    object-fit: contain;
-    border-radius: 4px;
-    transition: all 0.1s;
-  }
-  
-  &.add-item {
-    background-color: transparent;
-    color: var(--main-text-color);
-    border: 2px dashed var(--main-border-color);
-    
-    :deep(.i-icon) {
-      font-size: 26px;
+    .i-icon {
+      font-size: 24px;
       color: var(--main-text-color);
-      opacity: 0.6;
-      transition: opacity 0.1s;
     }
     
-    &:hover {
-      :deep(.i-icon) {
-        opacity: 1;
-      }
+    .favicon-img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+  }
+  
+  /* 快捷方式名称 */
+  .shortcut-name {
+    font-size: 12px;
+    color: var(--main-text-color);
+    text-align: center;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 80px;
+  }
+  
+  /* 添加按钮样式 */
+  &.add-item {
+    .icon-wrapper {
+      border: 2px dashed var(--main-border-color);
+      background-color: transparent;
+    }
+    
+    &:hover .icon-wrapper {
+      border-color: var(--main-text-color);
+      background-color: var(--main-background-light-color);
     }
   }
 }
 
-/* 组件级别的shortcut-name样式 */
-.shortcut-name {
-  font-size: 14px;
-  color: var(--main-text-color);
-  text-align: center;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0 5px;
-  box-sizing: border-box;
-  opacity: 0.8;
-  transition: opacity 0.1s;
-  margin-top: 8px;
-  
-  @media screen and (max-width: 768px) {
-    font-size: 13px;
-  }
-}
-
-.not-shortcut {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 20px;
-  
-  .tip {
-    font-size: 14px;
-    color: var(--main-text-color);
-    opacity: 0.7;
-  }
-}
-
+/* 表单样式 */
 .shortcut-form {
   .form-item {
     margin-bottom: 16px;
@@ -668,39 +694,27 @@ const handleShortcutClick = (event) => {
   .input-wrapper {
     display: flex;
     align-items: center;
-    border: 1px solid var(--border-color, #e0e0e0);
-    border-radius: 4px;
+    background-color: var(--main-background-light-color);
+    border-radius: 8px;
     overflow: hidden;
-    transition: border-color 0.3s;
-    
-    &:focus-within {
-      border-color: var(--primary-color, #18a058);
-    }
     
     .input-icon {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 10px;
-      color: var(--text-color-3, #909399);
-      
-      .i-icon {
-        width: 16px;
-        height: 16px;
-      }
+      width: 40px;
+      color: var(--main-text-color);
+      opacity: 0.7;
     }
     
     .custom-input {
       flex: 1;
       
-      :deep(.n-input__border),
-      :deep(.n-input__state-border) {
-        display: none;
-      }
-      
-      :deep(.n-input-wrapper) {
-        padding: 0;
-        background: transparent;
+      :deep(input) {
+        background-color: transparent;
+        border: none;
+        height: 40px;
+        padding: 0 12px 0 0;
       }
     }
   }
@@ -710,9 +724,9 @@ const handleShortcutClick = (event) => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 16px;
-    text-align: left;
     background-color: var(--main-background-light-color);
+    border: none;
+    height: 40px;
     
     .button-content {
       display: flex;
@@ -720,15 +734,13 @@ const handleShortcutClick = (event) => {
       
       .i-icon {
         margin-right: 8px;
-        width: 16px;
-        height: 16px;
       }
     }
     
     .button-value {
       display: flex;
       align-items: center;
-      color: var(--text-color-3, #909399);
+      opacity: 0.7;
       
       .i-icon {
         margin-left: 4px;

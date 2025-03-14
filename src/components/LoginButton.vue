@@ -78,7 +78,7 @@ const cancelLogin = () => {
   color: var(--main-text-color);
   background-color: var(--main-background-light-color);
   backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
 
   &:hover {
     background-color: var(--main-background-hover-color);

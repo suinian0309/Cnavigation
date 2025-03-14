@@ -12,8 +12,8 @@ const useStatusDataStore = defineStore("statusData", {
       engineChangeStatus: false,
       // 搜索框文本
       searchInputValue: "",
-      // 盒子大小
-      mainBoxBig: false,
+      // 功能面板是否展开
+      featurePanelExpanded: false,
     };
   },
   getters: {},
@@ -32,15 +32,15 @@ const useStatusDataStore = defineStore("statusData", {
     setSearchInputValue(value) {
       this.searchInputValue = value;
     },
-    setMainBoxBig(value) {
-      this.mainBoxBig = value;
+    setFeaturePanelExpanded(value) {
+      this.featurePanelExpanded = value;
     },
   },
   // 开启数据持久化
   persist: {
     key: "statusData",
     storage: window.localStorage,
-    paths: ["mainBoxBig"],
+    paths: ["featurePanelExpanded"],
   },
 });
 

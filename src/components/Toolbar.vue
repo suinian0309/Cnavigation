@@ -54,11 +54,6 @@
     </template>
     <div>操作与账号云同步，请您先登录账号。</div>
   </n-modal>
-  
-  <!-- 消息提示 -->
-  <n-message-provider>
-    <message-api-ref />
-  </n-message-provider>
 </template>
 
 <script setup>
@@ -451,7 +446,7 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   flex-shrink: 0;
   
@@ -480,7 +475,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
   position: relative;
   overflow: hidden; /* 确保图标不会溢出容器 */
   
@@ -510,7 +505,7 @@ onUnmounted(() => {
   color: #fff;
   opacity: 0;
   transform: translateY(5px);
-  transition: all 0.3s;
+  transition: all 0.1s;
   position: absolute;
   top: -25px;
   white-space: nowrap;
@@ -628,7 +623,7 @@ onUnmounted(() => {
   background-color: rgba(0, 0, 0, 0.7);
   padding: 5px 10px;
   border-radius: 8px;
-  animation: fadeIn 0.2s ease-out; /* 淡入动画 */
+  animation: fadeIn 0.1s ease-out; /* 淡入动画 */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   
   /* 移动设备适配 */

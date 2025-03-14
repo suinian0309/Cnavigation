@@ -2,6 +2,14 @@
   <Provider>
     <!-- 壁纸 -->
     <Cover @loadComplete="loadComplete" />
+    
+    <!-- 点击空白处返回 normal 状态的透明层 -->
+    <div 
+      v-if="status.siteStatus === 'box' || status.siteStatus === 'set'"
+      class="blank-area"
+      @click="status.setSiteStatus('normal')"
+    ></div>
+    
     <!-- 主界面 -->
     <Transition name="fade" mode="out-in">
       <main
@@ -30,13 +38,13 @@
           >
             <div
               class="change-status"
-              :title="status.mainBoxBig ? '收起' : '展开'"
-              @click.stop="status.setMainBoxBig(!status.mainBoxBig)"
+              :title="status.featurePanelExpanded ? '收起' : '展开'"
+              @click.stop="status.setFeaturePanelExpanded(!status.featurePanelExpanded)"
             >
               <Transition name="fade" mode="out-in">
                 <SvgIcon
-                  :iconName="`icon-${status.mainBoxBig ? 'packup' : 'unfold'}`"
-                  :key="status.mainBoxBig ? 'packup' : 'unfold'"
+                  :iconName="`icon-${status.featurePanelExpanded ? 'packup' : 'unfold'}`"
+                  :key="status.featurePanelExpanded ? 'packup' : 'unfold'"
                 />
               </Transition>
             </div>
@@ -63,17 +71,21 @@
 </template>
 
 <script setup>
-import { onMounted, nextTick, watch, ref } from "vue";
+import { onMounted, nextTick, watch, ref, defineAsyncComponent } from "vue";
 import { statusStore, setStore, siteStore } from "@/stores";
 import { getGreeting } from "@/utils/timeTools";
+import { throttle } from "@/utils/eventUtils";
 import Provider from "@/components/Provider.vue";
 import Cover from "@/components/Cover.vue";
+// 首屏必需组件 - 直接导入
 import WeatherTime from "@/components/WeatherTime.vue";
 import SearchInp from "@/components/SearchInput/SearchInp.vue";
-import AllFunc from "@/components/AllFunc/AllFunc.vue";
-import Hitokoto from '@/components/Hitokoto.vue';
-import Toolbar from '@/components/Toolbar.vue';
-import LoginButton from '@/components/LoginButton.vue';
+
+// 非首屏组件 - 懒加载
+const AllFunc = defineAsyncComponent(() => import("@/components/AllFunc/AllFunc.vue"));
+const Hitokoto = defineAsyncComponent(() => import('@/components/Hitokoto.vue'));
+const Toolbar = defineAsyncComponent(() => import('@/components/Toolbar.vue'));
+const LoginButton = defineAsyncComponent(() => import('@/components/LoginButton.vue'));
 
 const set = setStore();
 const status = statusStore();
@@ -83,8 +95,8 @@ const mainClickable = ref(false);
 /* 获取配置 */
 const welcomeText = import.meta.env.VITE_WELCOME_TEXT ?? "欢迎访问本站";
 
-/* 主界面点击事件 */
-const handleMainClick = () => {
+/* 主界面点击事件 - 使用节流 */
+const handleMainClick = throttle(() => {
   // 当站点状态为"box"或其他非normal状态时，点击将重置为normal
   if (status.siteStatus === "box" || status.siteStatus === "set") {
     status.setSiteStatus("normal");
@@ -92,13 +104,13 @@ const handleMainClick = () => {
     // 保持原有的focus状态点击行为
     status.setSiteStatus("normal");
   }
-};
+}, 200);
 
-/* 鼠标右键 */
-const mainContextmenu = (event) => {
+/* 鼠标右键 - 使用节流 */
+const mainContextmenu = throttle((event) => {
   event.preventDefault();
   status.setSiteStatus("box");
-};
+}, 200);
 
 /* 加载完成事件 */
 const loadComplete = () => {
@@ -111,8 +123,8 @@ const loadComplete = () => {
   });
 };
 
-/* 全局键盘事件 */
-const mainPressKeyboard = (event) => {
+/* 全局键盘事件 - 使用节流 */
+const mainPressKeyboard = throttle((event) => {
   const keyCode = event.keyCode;
   /* 回车 */
   if (keyCode === 13) {
@@ -121,7 +133,7 @@ const mainPressKeyboard = (event) => {
     status.setSiteStatus("focus");
     mainInput?.focus();
   }
-};
+}, 200);
 
 /* 根据主题类别更改 */
 const changeThemeType = (val) => {
@@ -143,6 +155,17 @@ onMounted(() => {
 </script>
 
 <style lang="postcss" scoped>
+/* 点击空白处返回 normal 状态的透明层 */
+.blank-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: auto;
+}
+
 #main,
 #loading {
   position: absolute;
@@ -155,6 +178,8 @@ onMounted(() => {
   justify-content: flex-start;
   align-items: center;
   padding-top: calc(20vh + 40px);
+  box-sizing: border-box;
+  z-index: 2; /* 确保主界面在透明层之上 */
 
   .top-section {
     display: flex;
@@ -171,28 +196,29 @@ onMounted(() => {
     gap: 30px;
     margin-bottom: auto;
     margin-top: 20px;
+    width: 100%;
+    position: relative;
+    box-sizing: border-box;
+    text-align: center;
   }
 
   &.main-normal,
   &.main-focus {
-    .main-box {
+    .feature-panel {
       opacity: 0;
-      margin-top: 0;
-      transform: scale(0.35);
       pointer-events: none;
+      visibility: hidden;
+      transform: scale(0.35) translateX(-50%);
     }
   }
 
   &.main-box,
   &.main-set {
-    .main-box {
+    .feature-panel {
       opacity: 1;
-      margin-top: calc(5vh - 100px);
-      transform: scale(1);
+      pointer-events: auto;
       visibility: visible;
-      @media (max-width: 478px) {
-        margin-top: calc(7vh - 100px);
-      }
+      transform: translateX(-50%) scale(1);
     }
     .search-input {
       :deep(.all) {
@@ -230,7 +256,7 @@ onMounted(() => {
       color: var(--main-text-color);
       background-color: var(--main-background-light-color);
       backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
+      transition: all 0.1s ease;
 
       &:hover {
         background-color: var(--main-background-hover-color);

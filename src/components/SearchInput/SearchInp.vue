@@ -42,6 +42,7 @@
         @focus="status.setSiteStatus('focus')"
         @click.stop="status.setEngineChangeStatus(false)"
         @keydown.stop="pressKeyboard"
+        @input="handleInput"
       />
       <div class="go" title="搜索" @click="handleSearch">
         <SvgIcon iconName="icon-search" className="search" />
@@ -55,12 +56,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { statusStore, setStore } from "@/stores";
 import SearchEngine from "@/components/SearchInput/SearchEngine.vue";
 import Suggestions from "@/components/SearchInput/Suggestions.vue";
 import defaultEngine from "@/assets/defaultEngine.json";
 import siteData from "@/stores/siteData";
+import { debounce, throttle, createCancelableDebounce } from "@/utils/eventUtils";
 
 const set = setStore();
 const status = statusStore();
@@ -84,6 +86,18 @@ const searchInputRef = ref(null);
 /* 搜索建议子组件 */
 const suggestionsRef = ref(null);
 
+/* 可取消的防抖函数 */
+const debouncedSearch = createCancelableDebounce((value) => {
+  if (value && value.trim()) {
+    suggestionsRef.value?.fetchSuggestions(value);
+  }
+}, 300);
+
+/* 处理输入事件 - 使用防抖 */
+const handleInput = () => {
+  debouncedSearch.execute(status.searchInputValue);
+};
+
 /* 关闭搜索框 */
 const closeSearchInput = (check = false) => {
   if (check && !set.autoInputBlur) {
@@ -94,10 +108,13 @@ const closeSearchInput = (check = false) => {
     searchInputRef.value?.blur();
   }
   status.setEngineChangeStatus(false);
+  
+  // 取消正在进行的防抖搜索
+  debouncedSearch.cancel();
 };
 
-/* 前往搜索 */
-const toSearch = (val, type = 1) => {
+/* 前往搜索 - 使用节流 */
+const toSearch = throttle((val, type = 1) => {
   const searchValue = val?.trim();
   /* 定义跳转方法 */
   const jumpLink = (url) => {
@@ -154,7 +171,7 @@ const toSearch = (val, type = 1) => {
     status.setSiteStatus("focus");
     searchInputRef.value?.focus();
   }
-};
+}, 500);
 
 /* 搜索框动画结束 */
 const inputAnimationEnd = () => {
@@ -166,13 +183,13 @@ const inputAnimationEnd = () => {
   }
 };
 
-/* 键盘事件 */
-const pressKeyboard = (event) => {
+/* 键盘事件 - 使用节流 */
+const pressKeyboard = throttle((event) => {
   /* 获取键的键码 */
   const keyCode = event.keyCode;
   /* 子组件事件 */
   suggestionsRef.value?.keyboardEvents(keyCode, event);
-};
+}, 100);
 
 /* 更换搜索引擎 */
 const changeEngine = () => {
@@ -180,10 +197,16 @@ const changeEngine = () => {
   status.setEngineChangeStatus(!status.engineChangeStatus);
 };
 
-const handleSearch = () => {
+/* 处理搜索按钮点击 - 使用节流 */
+const handleSearch = throttle(() => {
   if (!status.searchInputValue) return;
   toSearch(status.searchInputValue, 1);
-};
+}, 300);
+
+/* 组件卸载时取消防抖函数 */
+onBeforeUnmount(() => {
+  debouncedSearch.cancel();
+});
 </script>
 
 <style lang="postcss" scoped>
@@ -194,7 +217,7 @@ const handleSearch = () => {
   align-items: center;
   max-width: 680px;
   width: calc(100% - 60px);
-  transition: width 0.35s linear;
+  transition: width 0.1s linear;
   
   .mask {
     position: fixed;
@@ -202,136 +225,137 @@ const handleSearch = () => {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: 1;
   }
   
   .all {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    height: 42px;
     width: 100%;
-    border-radius: 30px;
-    color: var(--main-text-color);
+    height: 44px;
     background-color: var(--main-background-color);
+    border-radius: 22px;
     backdrop-filter: blur(10px);
-    opacity: 1;
-    animation: fade-up-in 0.7s cubic-bezier(0.37, 0.99, 0.36, 1);
-    transition:
-      background-color 0.3s,
-      opacity 0.5s;
-    z-index: 1;
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--main-box-shadow);
+    z-index: 2;
+    transition: all 0.1s ease;
+    animation: search-input-in 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform, opacity; /* 提示浏览器这些属性会变化，优化性能 */
     
-    .input {
-      display: flex;
-      justify-content: center;
-      height: 100%;
-      width: 100%;
-      padding: 0;
-      margin: 0;
-      border: none;
-      outline: none;
-      background: none;
-      font-size: 16px;
-      color: var(--main-text-color);
-      
-      &::placeholder {
-        width: 100%;
-        text-align: center;
-        color: var(--main-text-color);
-        letter-spacing: 2px;
-        transition: opacity 0.3s;
-      }
-    }
-    
-    .engine,
-    .go {
-      cursor: pointer;
+    .engine {
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100%;
-      width: 64px;
-      font-size: 20px;
-      border-radius: 30px;
-      transition:
-        background-color 0.3s,
-        opacity 0.3s;
-        
+      cursor: pointer;
+      color: var(--main-text-color);
+      transition: all 0.1s ease;
+      
       &:hover {
-        background-color: var(--main-background-color);
+        transform: scale(1.1);
       }
       
-      @media (max-width: 520px) {
-        font-size: 18px;
+      &:active {
+        transform: scale(0.9);
+      }
+      
+      :deep(.i-icon) {
+        width: 20px;
+        height: 20px;
+        font-size: 20px;
+      }
+    }
+    
+    .input {
+      flex: 1;
+      height: 100%;
+      background-color: transparent;
+      border: none;
+      outline: none;
+      color: var(--main-text-color);
+      font-size: 16px;
+      padding: 0 10px;
+      
+      &::placeholder {
+        color: var(--main-text-grey-color);
+        opacity: 0.7;
+      }
+    }
+    
+    .go {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--main-text-color);
+      transition: all 0.1s ease;
+      
+      &:hover {
+        transform: scale(1.1);
+      }
+      
+      &:active {
+        transform: scale(0.9);
+      }
+      
+      :deep(.i-icon) {
+        width: 20px;
+        height: 20px;
+        font-size: 20px;
       }
     }
   }
   
   &.small {
-    width: 260px;
-    
     .all {
-      .engine,
-      .go {
-        opacity: 0;
-      }
+      width: 44px;
       
-      .input {
-        &::placeholder {
-          opacity: 0.6;
-        }
-      }
-      
-      &.focus {
-        .engine,
-        .go {
-          opacity: 1;
-        }
+      .input, .go {
+        display: none;
       }
     }
     
-    &:hover {
-      /* width: calc(100% - 60px); */
+    &.focus {
       .all {
-        .input {
-          &::placeholder {
-            opacity: 1;
-          }
+        width: 100%;
+        
+        .input, .go {
+          display: block;
         }
       }
     }
   }
   
   &.focus {
-    width: calc(100% - 60px);
-    
     .all {
       background-color: var(--main-input-hover-color);
+      box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
       
       .input {
-        color: var(--main-text-hover-color);
+        color: #333;
         
         &::placeholder {
-          opacity: 0;
+          color: #999;
         }
       }
       
-      .engine,
-      .go,
-      .delete {
-        opacity: 1;
-        color: var(--main-text-hover-color);
+      .engine, .go {
+        color: #666;
       }
     }
   }
 }
 
-@keyframes fade-up-in {
+@keyframes search-input-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
