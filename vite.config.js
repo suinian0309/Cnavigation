@@ -44,8 +44,8 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "Snavigation",
-        short_name: "Snavigation",
+        name: "Cnavigation",
+        short_name: "Cnavigation",
         description: "一个极致简约的导航页",
         display: "standalone",
         start_url: "/",

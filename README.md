@@ -2,7 +2,7 @@
 
 一个简约而功能丰富的个人导航起始页
 
-![Cnavigation](https://s2.loli.net/2022/07/15/FE6U2BJCynHDep8.jpg)
+![Cnavigation](https://img.alicdn.com/imgextra/i4/333145399/O1CN01GyiTFT1pknOpowY8Q_!!333145399.png)
 
 ## 功能特点
 
@@ -115,5 +115,8 @@ VITE_HITOKOTO_API=https://v1.hitokoto.cn
 - [iconfont](https://www.iconfont.cn/) - 图标资源
 - [Hitokoto](https://hitokoto.cn/) - 一言 API
 - 所有开源贡献者
+- [本站部分样式及功能参考1️⃣](https://www.limestart.cn/)
+- [本站部分样式及功能参考2️⃣](https://nav.imsyy.top/)
+
 
 <a title="SSL" target="_blank" href="https://myssl.com/seal/detail?domain=blog.imsyy.top"><img src="https://img.shields.io/badge/MySSL-安全认证-brightgreen"></a>&nbsp;<a title="CDN" target="_blank" href="https://cdnjs.com/"><img src="https://img.shields.io/badge/CDN-Cloudflare-blue"></a>&nbsp;<a title="Copyright" target="_blank" href="https://so.kejicode.cn/"><img src="https://img.shields.io/badge/Copyright%20%C2%A9%202020--2024-碎念-red"></a>
