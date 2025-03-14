@@ -508,7 +508,7 @@ const itemsPerRow = computed(() => {
 
 // 项目尺寸
 const itemWidth = computed(() => Math.min(80, (containerWidth.value / itemsPerRow.value) - 20));
-const itemHeight = ref(90); // 稍微减小高度
+const itemHeight = ref(120); // 增加高度以适应正方形图标和文字
 
 // 计算所有项目的位置
 const allItemsWithPosition = computed(() => {
@@ -634,8 +634,8 @@ const visibleItems = computed(() => {
   
   /* 图标容器 */
   .icon-wrapper {
-    width: 48px;
-    height: 48px;
+    width: 80px;
+    height: 80px;  /* 修改为与宽度相同，使其成为正方形 */
     border-radius: 12px;
     background-color: var(--main-background-light-color);
     backdrop-filter: blur(10px);
@@ -644,7 +644,7 @@ const visibleItems = computed(() => {
     align-items: center;
     justify-content: center;
     transition: all 0.1s ease;
-    margin-bottom: 8px;
+    margin-bottom: 8px;  /* 增加底部间距 */
     box-shadow: var(--main-box-shadow);
     
     .i-icon {
@@ -669,6 +669,8 @@ const visibleItems = computed(() => {
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 80px;
+    height: 16px;  /* 固定高度 */
+    line-height: 16px;  /* 行高等于高度 */
   }
   
   /* 添加按钮样式 */
