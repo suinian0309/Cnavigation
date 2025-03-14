@@ -24,9 +24,7 @@
       <div class="engine" title="切换搜索引擎" @click="changeEngine">
         <Transition name="fade" mode="out-in">
           <SvgIcon
-            :iconName="`icon-${
-              set.searchEngine !== 'custom' ? defaultEngine[set.searchEngine]?.icon : 'custom'
-            }`"
+            :iconName="currentEngineIcon"
             :key="set.searchEngine"
           />
         </Transition>
@@ -57,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { statusStore, setStore } from "@/stores";
 import SearchEngine from "@/components/SearchInput/SearchEngine.vue";
 import Suggestions from "@/components/SearchInput/Suggestions.vue";
@@ -66,6 +64,15 @@ import siteData from "@/stores/siteData";
 
 const set = setStore();
 const status = statusStore();
+
+// 当前搜索引擎图标
+const currentEngineIcon = computed(() => {
+  if (set.searchEngine === 'custom') {
+    return 'icon-custom';
+  }
+  
+  return `icon-${defaultEngine[set.searchEngine]?.icon || set.searchEngine}`;
+});
 
 /* 搜索框配置 */
 const inputTip = import.meta.env.VITE_INPUT_TIP ?? "想要搜点什么";

@@ -28,12 +28,12 @@ const status = statusStore();
 .main-box {
   position: absolute;
   width: 57.25%;
-  max-width: 635px;
+  max-width: 888px;
   height: 44.5vh;
   margin-top: -5px;
   background-color: transparent;
   color: var(--main-text-color);
-  border-radius: 24px;
+  border-radius: 1%;
   transition: all 0.3s ease;
   z-index: 2;
   overflow: hidden;

@@ -17,6 +17,11 @@ const useSetDataStore = defineStore("setData", {
       searchEngine: "bing",
       lastSearchEngine: "bing",
       customEngineUrl: "",
+      // 搜索引擎顺序
+      searchEngineOrder: [
+        "baidu", "bing", "google", "duckduckgo", "yandex", 
+        "weibo", "bilibili", "github"
+      ],
       // 搜索框收起
       smallInput: false,
       // 清空搜索框
@@ -49,13 +54,19 @@ const useSetDataStore = defineStore("setData", {
       if (this.searchEngine !== "custom") {
         this.lastSearchEngine = this.searchEngine;
       }
+      
       // 设置新引擎
       if (custom) {
         this.customEngineUrl = value;
         this.searchEngine = "custom";
         return;
       }
+      
       this.searchEngine = value;
+    },
+    // 更新搜索引擎顺序
+    updateSearchEngineOrder(newOrder) {
+      this.searchEngineOrder = newOrder;
     },
     // 恢复数据
     recoverSiteData(data) {
