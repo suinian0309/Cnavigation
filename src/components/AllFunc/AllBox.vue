@@ -2,9 +2,9 @@
   <div class="all-box">
     <!-- 捷径 -->
     <Transition name="fade" mode="out-in">
-      <div v-if="shortcutData[0]" class="shortcut">
-        <div class="all-shortcut">
-          <div class="shortcut-grid" :class="{ 'dark': isDarkTheme }">
+      <div v-if="shortcutData[0]" class="shortcut" @click="handleShortcutClick">
+        <div class="all-shortcut" @click="handleShortcutClick">
+          <div class="shortcut-grid" :class="{ 'dark': isDarkTheme }" @click="handleGridClick">
             <div
               v-for="item in shortcutData"
               :key="item.id"
@@ -167,12 +167,13 @@ import {
   useDialog,
 } from "naive-ui";
 import { storeToRefs } from "pinia";
-import { siteStore, setStore } from "@/stores";
+import { siteStore, setStore, statusStore } from "@/stores";
 import SvgIcon from "@/components/SvgIcon.vue";
 import identifyInput from "@/utils/identifyInput";
 
 const set = setStore();
 const site = siteStore();
+const status = statusStore();
 const { shortcutData } = storeToRefs(site);
 const $message = useMessage();
 const $dialog = useDialog();
@@ -203,33 +204,6 @@ const renderIcon = (icon) => {
   return () => {
     return h(SvgIcon, { iconName: `icon-${icon}` }, null);
   };
-};
-
-/* 获取渐变背景样式 */
-const getGradientStyle = (item) => {
-  // 预设的渐变样式
-  const gradients = [
-    'linear-gradient(135deg, rgb(124, 214, 255), rgb(26, 135, 178))',
-    'linear-gradient(135deg, rgb(220, 227, 91), rgb(68, 128, 0))',
-    'linear-gradient(135deg, rgb(255, 173, 141), rgb(243, 82, 92))',
-    'linear-gradient(135deg, rgb(255, 217, 118), rgb(221, 137, 0))',
-    'linear-gradient(135deg, rgb(174, 210, 255), rgb(0, 85, 192))',
-    'linear-gradient(135deg, rgb(255, 181, 151), rgb(215, 93, 43))',
-    'linear-gradient(135deg, rgb(255, 162, 191), rgb(235, 71, 114))',
-    'linear-gradient(135deg, rgb(84, 174, 229), rgb(147, 106, 209))',
-    'linear-gradient(135deg, rgb(247, 206, 70), rgb(213, 104, 41))'
-  ];
-  
-  // 如果item有icon属性，使用对应的图标
-  if (item.icon && item.icon !== 'auto') {
-    // 如果是自定义图标，返回对应的渐变
-    const iconIndex = parseInt(item.icon.replace(/\D/g, '')) || 0;
-    return gradients[iconIndex % gradients.length];
-  }
-  
-  // 根据item的id或其他属性选择渐变
-  const index = (item.id || 0) % gradients.length;
-  return gradients[index];
 };
 
 /* 添加捷径数据 */
@@ -413,7 +387,6 @@ const shortCutContextmenu = (e, data) => {
 /* 右键菜单点击 */
 const shortCutDropdownSelect = (key) => {
   shortCutDropdownShow.value = false;
-  console.log(key);
   switch (key) {
     case "edit":
       addShortcutModalType.value = true;
@@ -477,6 +450,22 @@ const getFaviconUrl = (url) => {
   } catch (e) {
     console.error('URL解析错误:', e);
     return '';
+  }
+};
+
+/* 处理grid点击事件 */
+const handleGridClick = (event) => {
+  // 如果点击的是shortcut-grid本身（而不是其子元素），则重置站点状态
+  if (event.target.classList.contains('shortcut-grid')) {
+    status.setSiteStatus('normal');
+  }
+};
+
+/* 处理捷径点击事件 */
+const handleShortcutClick = (event) => {
+  // 如果点击的是shortcut或all-shortcut本身（而不是其子元素），则重置站点状态
+  if (event.target.classList.contains('shortcut') || event.target.classList.contains('all-shortcut')) {
+    status.setSiteStatus('normal');
   }
 };
 </script>

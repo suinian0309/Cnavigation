@@ -9,7 +9,7 @@
         id="main"
         :class="`main-${status.siteStatus}`"
         :style="{ pointerEvents: mainClickable ? 'auto' : 'none' }"
-        @click="status.setSiteStatus('normal')"
+        @click="handleMainClick"
         @contextmenu="mainContextmenu"
         @keydown="mainPressKeyboard"
       >
@@ -82,6 +82,17 @@ const mainClickable = ref(false);
 
 /* 获取配置 */
 const welcomeText = import.meta.env.VITE_WELCOME_TEXT ?? "欢迎访问本站";
+
+/* 主界面点击事件 */
+const handleMainClick = () => {
+  // 当站点状态为"box"或其他非normal状态时，点击将重置为normal
+  if (status.siteStatus === "box" || status.siteStatus === "set") {
+    status.setSiteStatus("normal");
+  } else if (status.siteStatus === "focus") {
+    // 保持原有的focus状态点击行为
+    status.setSiteStatus("normal");
+  }
+};
 
 /* 鼠标右键 */
 const mainContextmenu = (event) => {

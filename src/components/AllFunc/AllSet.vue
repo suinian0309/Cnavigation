@@ -1,5 +1,5 @@
 <template>
-  <div class="setting">
+  <div class="setting" @click="handleSettingClick">
     <!-- 左侧菜单 -->
     <div class="left show">
       <div class="title">
@@ -243,6 +243,14 @@ const backgroundTypeArr = [
 const changeBackground = (index, force = false) => {
   if (index === backgroundType.value && !force) return;
   set.setBackgroundType(index);
+};
+
+/* 处理setting的点击事件 */
+const handleSettingClick = (event) => {
+  // 如果点击的是setting本身（而不是其子元素），则重置站点状态
+  if (event.target.classList.contains('setting')) {
+    status.setSiteStatus('normal');
+  }
 };
 
 // 其他原有的方法和变量...
