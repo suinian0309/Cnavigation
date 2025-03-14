@@ -183,7 +183,7 @@ body {
 /* Transition 动画 */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.25s ease-in-out;
+  transition: opacity 0.1s ease-in-out;
 }
 
 .fade-enter-from,
@@ -194,12 +194,12 @@ body {
 .fadeDown-enter-active,
 .fadeDown-leave-active {
   transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+    opacity 0.1s ease,
+    transform 0.1s ease;
 }
 
 .fadeDown-enter-active {
-  transition-delay: 0.2s;
+  transition-delay: 0.1s;
 }
 
 .fadeDown-enter-from,
@@ -211,14 +211,13 @@ body {
 .show-enter-active,
 .show-leave-active {
   transition:
-    opacity 0.25s ease,
-    transform 0.25s ease-in-out;
+    opacity 0.1s ease,
+    transform 0.1s ease-in-out;
 }
 
 .show-enter-from,
 .show-leave-to {
   opacity: 0;
-  transform: translateY(20px);
 }
 
 /* 全局动画 */
@@ -309,4 +308,6 @@ body {
     padding: 0 5px;
     box-sizing: border-box;
   }
-} 
+}
+
+/* 移除全局的shortcut-grid样式，使用组件中的样式 */

@@ -170,7 +170,7 @@ body {
 // Transition 动画
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.25s ease-in-out;
+  transition: opacity 0.1s ease-in-out;
 }
 
 .fade-enter-from,
@@ -181,12 +181,12 @@ body {
 .fadeDown-enter-active,
 .fadeDown-leave-active {
   transition:
-    opacity 0.3s ease,
-    transform 0.3s ease;
+    opacity 0.1s ease,
+    transform 0.1s ease;
 }
 
 .fadeDown-enter-active {
-  transition-delay: 0.2s;
+  transition-delay: 0.1s;
 }
 
 .fadeDown-enter-from,
@@ -198,8 +198,8 @@ body {
 .show-enter-active,
 .show-leave-active {
   transition:
-    opacity 0.25s ease,
-    transform 0.25s ease-in-out;
+    opacity 0.1s ease,
+    transform 0.1s ease-in-out;
 }
 
 .show-enter-from,

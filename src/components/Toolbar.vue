@@ -424,7 +424,7 @@ onUnmounted(() => {
   overflow-x: auto;
   scrollbar-width: none; /* 隐藏滚动条 */
   -ms-overflow-style: none;
-  transition: all 0.3s ease;
+  transition: all 0.1s ease;
   background: rgba(255, 255, 255, 0.1);
   
   /* 深色主题样式 */

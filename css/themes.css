@@ -1,0 +1,127 @@
+/* 主题样式 */
+
+/* 暗色主题特定样式 */
+.dark .rth-7d55e630,.dark .rth-dcd98d54 input:focus,.dark .rth-d5808f41.rth-d311b78b,.dark .rth-430c2d13 input:focus{
+    background-color:#232323;
+  }
+  
+  .dark .rth-98c9041b.rth-81214558{
+    background-color:#232323;
+  }
+  
+  .dark .rth-76d5b4b9.rth-9ed49dff{
+    background-color:rgba(255,255,255,.05);
+  }
+  
+  .dark .rth-5291fab9:not(.rth-8de20db9):focus-visible,.dark .rth-5291fab9:not(.rth-8de20db9):hover{
+    background-color:rgba(255,255,255,.05);
+  }
+  
+  .dark .rth-5291fab9:not(.rth-8de20db9):active{
+    background-color:rgba(255,255,255,.1);
+  }
+  
+  .dark .rth-0355e9f8{
+    filter:brightness(.8);
+  }
+  
+  .dark .rth-91385502{
+    background-color:#323232;
+  }
+  
+  .dark .rth-43dad943:hover{
+    background-color:rgba(255,255,255,.05);
+    filter:none;
+  }
+  
+  .dark .rth-29e13152{
+    color:rgba(255,255,255,.7);
+  }
+  
+  .dark .rth-1e73395a{
+    background-color:rgba(0,0,0,.35);
+  }
+  
+  .dark .rth-1e73395a:hover{
+    background-color:rgba(15,15,15,.6);
+  }
+  
+  .dark .rth-1e73395a:hover .rth-2bf06e38::-moz-placeholder,.dark .rth-2bf06e38::-moz-placeholder{
+    color:rgba(255,255,255,.8);
+    text-shadow:none;
+  }
+  
+  .dark .rth-1e73395a:hover .rth-2bf06e38::placeholder,.dark .rth-2bf06e38::placeholder{
+    color:rgba(255,255,255,.8);
+    text-shadow:none;
+  }
+  
+  .dark .rth-1e73395a.rth-7bef8fd3{
+    background-color:rgba(30,30,30,.9);
+  }
+  
+  .dark .rth-1e73395a.rth-7bef8fd3 .rth-2bf06e38::-moz-placeholder{
+    color:transparent;
+  }
+  
+  .dark .rth-1e73395a.rth-7bef8fd3 .rth-2bf06e38::placeholder{
+    color:transparent;
+  }
+  
+  /* 主题颜色变体特定样式 */
+  .rth-7a564a4a .rth-9fe038ce:focus-visible,.rth-7a564a4a .rth-9fe038ce:hover{
+    background-color:var(--theme-color-tint-rose);
+    color:var(--theme-color-rose);
+  }
+  
+  .rth-5291fab9.rth-8de20db9:focus-visible,.rth-5291fab9.rth-8de20db9:hover{
+    background-color:var(--theme-color-tint-rose);
+    color:var(--theme-color-rose);
+  }
+  
+  .rth-5291fab9.rth-8de20db9:focus-visible .rth-0844166c,.rth-5291fab9.rth-8de20db9:hover .rth-0844166c{
+    color:var(--theme-color-rose);
+  }
+  
+  .rth-5291fab9.rth-8de20db9:active{
+    background-color:rgba(255,75,104,.2);
+  }
+  
+  .rth-725521a3 button:not(:disabled).rth-24011460:focus-visible,.rth-725521a3 button:not(:disabled).rth-24011460:hover{
+    background-color:var(--theme-color-tint-rose);
+    color:var(--theme-color-rose);
+  }
+  
+  /* 亮色主题特定样式 */
+  .lite{
+    --main-backdrop-filter: blur(30px) saturate(1.5);
+  }
+  
+  /* 主题色彩变体 */
+  .theme-color-blue{
+    --theme-color: var(--theme-color-blue);
+    --theme-color-active: #5390e6;
+    --theme-color-tint: rgba(92, 161, 255, .1);
+    --selection-color: rgba(92, 161, 255, .35);
+  }
+  
+  .theme-color-indigo{
+    --theme-color: var(--theme-color-indigo);
+    --theme-color-active: #429ea8;
+    --theme-color-tint: rgba(76, 182, 194, .1);
+    --selection-color: rgba(76, 182, 194, .35);
+  }
+  
+  .theme-color-rose{
+    --theme-color: var(--theme-color-rose);
+    --theme-color-active: #e6435e;
+    --theme-color-tint: var(--theme-color-tint-rose);
+    --selection-color: rgba(255, 75, 104, .35);
+  }
+  
+  .theme-color-violet{
+    --theme-color: var(--theme-color-violet);
+    --theme-color-active: #a67cc4;
+    --theme-color-tint: rgba(187, 140, 221, .1);
+    --selection-color: rgba(187, 140, 221, .35);
+  }
