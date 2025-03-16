@@ -1,10 +1,10 @@
 <template>
-  <!-- 功能区 - 直接使用 feature-panel 作为唯一容器 -->
+  <!-- 功能区  -->
   <Transition name="fade" mode="out-in">
-    <div v-if="status.siteStatus === 'box'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''" @click.stop>
+    <div v-if="status.siteStatus === 'box'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''">
       <AllBox />
     </div>
-    <div v-else-if="status.siteStatus === 'set'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''" @click.stop>
+    <div v-else-if="status.siteStatus === 'set'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''">
       <AllSet />
     </div>
   </Transition>
@@ -28,9 +28,9 @@ const status = statusStore();
 /* 主功能面板 */
 .feature-panel {
   position: absolute;
-  width: 57.25%;
+  width: clamp(28.625%, 57.25%, 57.25%); /* 最小宽度为最大宽度的50% */
   max-width: 888px;
-  height: 44.5vh;
+  height: clamp(22.25vh, 44.5vh, 44.5vh); /* 最小高度为最大高度的50% */
   margin-top: -5px;
   color: var(--main-text-color);
   z-index: 10; /* 提高z-index，确保在透明层之上 */
@@ -40,7 +40,7 @@ const status = statusStore();
   background-color: transparent; /* 修改为透明背景 */
   border-radius: 12px;
   overflow: auto;
-  padding: 20px;
+  padding: clamp(10px, 20px, 20px); /* 响应式内边距 */
   
   /* 移除模糊效果和阴影 */
   backdrop-filter: none;
@@ -63,17 +63,46 @@ const status = statusStore();
   }
   
   /* 过渡只应用于需要的属性 */
-  transition: opacity 0.1s ease, transform 0.1s ease, height 0.1s ease;
+  transition: opacity 0.1s ease, transform 0.1s ease, height 0.1s ease, width 0.1s ease;
   
   /* 大尺寸变体 */
   &.big {
-    height: 54vh;
+    height: clamp(27vh, 54vh, 54vh); /* 最小高度为最大高度的50% */
   }
   
-  /* 响应式调整 */
+  /* 响应式调整 - 使用视口宽度进行更精细的控制 */
+  @media (max-width: 1200px) {
+    width: 50%;
+    padding: 15px;
+  }
+  
+  @media (max-width: 992px) {
+    width: 60%;
+    padding: 12px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 70%;
+    padding: 10px;
+  }
+  
+  @media (max-width: 576px) {
+    width: 80%;
+    height: 35vh;
+    padding: 8px;
+    
+    &.big {
+      height: 45vh;
+    }
+  }
+  
   @media (max-width: 478px) {
-    width: 60.4%;
-    height: 41.3vh;
+    width: 90%;
+    height: 30vh;
+    
+    &.big {
+      height: 40vh;
+    }
   }
 }
 
@@ -143,11 +172,11 @@ const status = statusStore();
           flex-direction: column;
           
           .title {
-            font-size: 16px;
+            font-size: clamp(14px, 16px, 16px);
           }
           
           .tip {
-            font-size: 13px;
+            font-size: clamp(11px, 13px, 13px);
             opacity: 0.8;
           }
         }
@@ -160,6 +189,11 @@ const status = statusStore();
         @media (max-width: 768px) {
           width: 140px;
           min-width: 140px;
+        }
+        
+        @media (max-width: 576px) {
+          width: 120px;
+          min-width: 120px;
         }
       }
     }
@@ -204,6 +238,33 @@ const status = statusStore();
     /* 无内边距处理 */
     &.no-padding .scrollbar {
       max-height: var(--content-no-padding-height);
+    }
+  }
+  
+  /* 响应式调整 */
+  @media (max-width: 576px) {
+    .shortcut-item {
+      transform: scale(0.9);
+      
+      .icon-wrapper {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .shortcut-name {
+        font-size: 11px;
+      }
+    }
+  }
+  
+  @media (max-width: 478px) {
+    .shortcut-item {
+      transform: scale(0.8);
+      
+      .icon-wrapper {
+        width: 60px;
+        height: 60px;
+      }
     }
   }
 }

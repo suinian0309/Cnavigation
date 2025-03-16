@@ -415,10 +415,10 @@ const handleClose = () => {
 
 <style lang="postcss" scoped>
 .shortcut-add-modal {
-  position: fixed;
-  left: calc(50% + 120px); /* 调整水平位置，向右偏移 */
-  top: 40%; /* 调整垂直位置，稍微向上偏移 */
-  transform: translate(-50%, -50%);
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translateX(20px);
   width: 360px;
   background-color: var(--main-background-light-color);
   border-radius: 12px;
@@ -428,20 +428,78 @@ const handleClose = () => {
   overflow: hidden;
   z-index: 1000;
   color: var(--main-text-color);
+  pointer-events: auto;
+  animation: fadeInScale 0.1s ease-out;
+  
+  /* 响应式调整 */
+  @media (max-width: 768px) {
+    width: 320px;
+    transform: translateX(15px);
+  }
+  
+  @media (max-width: 576px) {
+    width: 280px;
+    transform: translateX(10px);
+  }
+  
+  @media (max-width: 480px) {
+    width: 250px;
+    transform: translateX(5px);
+  }
 }
 
 .fade-in-scale {
-  animation: fadeInScale 0.2s ease-out forwards;
+  animation: fadeInScale 0.1s ease-out forwards;
 }
 
 @keyframes fadeInScale {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translateX(20px) scale(0.9);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateX(20px) scale(1);
+  }
+}
+
+/* 响应式动画关键帧 */
+@media (max-width: 768px) {
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: translateX(15px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(15px) scale(1);
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: translateX(10px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(10px) scale(1);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: translateX(5px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(5px) scale(1);
+    }
   }
 }
 

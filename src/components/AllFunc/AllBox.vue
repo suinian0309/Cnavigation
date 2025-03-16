@@ -1,11 +1,16 @@
 <template>
   <!-- 有捷径时显示捷径列表 -->
-  <template v-if="shortcutData && shortcutData.length > 0">
-    <div class="shortcuts-container">
+  <template v-if="shortcutData && shortcutData.length > 0 || true">
+    <div 
+      class="shortcuts-container" 
+      @click="handleContainerClick"
+      :style="{ height: `${totalHeight}px` }"
+    >
       <div
         v-for="item in visibleItems"
         :key="item.id"
         class="shortcut-item"
+        :class="{ 'add-item': item.isAddButton }"
         :style="{
           position: 'absolute',
           top: `${item.top}px`,
@@ -13,36 +18,34 @@
           width: `${itemWidth}px`,
           height: `${itemHeight}px`
         }"
-        @contextmenu.stop="shortCutContextmenu($event, item.data)"
-        @click.stop="shortCutJump(item.data.url)"
+        @contextmenu.stop="item.isAddButton ? () => {} : shortCutContextmenu($event, item.data)"
+        @click.stop="item.isAddButton ? addShortcutModalOpen() : shortCutJump(item.data.url)"
       >
-        <i class="icon-wrapper" :style="getIconStyle(item.data)">
-          <SvgIcon v-if="getIconName(item.data)" :iconName="getIconName(item.data)" />
-          <img v-else-if="item.data.icon === 'auto' || item.data.icon === 'default'" :src="getFaviconUrl(item.data.url)" class="favicon-img" alt="网站图标" />
-          <template v-else-if="item.data.icon === 'generated'">{{ item.data.name.charAt(0) }}</template>
-          <!-- 自定义URL图标通过背景图片显示，不需要额外内容 -->
-          <span v-else></span>
+        <i class="icon-wrapper" :style="item.isAddButton ? {} : getIconStyle(item.data)">
+          <template v-if="item.isAddButton">
+            <SvgIcon iconName="icon-add" />
+          </template>
+          <template v-else>
+            <SvgIcon v-if="getIconName(item.data)" :iconName="getIconName(item.data)" />
+            <img v-else-if="item.data.icon === 'auto' || item.data.icon === 'default'" :src="getFaviconUrl(item.data.url)" class="favicon-img" alt="网站图标" />
+            <template v-else-if="item.data.icon === 'generated'">{{ item.data.name.charAt(0) }}</template>
+            <!-- 自定义URL图标通过背景图片显示，不需要额外内容 -->
+            <span v-else></span>
+          </template>
         </i>
         <div class="shortcut-name">{{ item.data.name }}</div>
       </div>
       
-      <!-- 添加按钮 -->
-      <div
-        class="shortcut-item add-item"
-        :style="{
-          position: 'absolute',
-          top: `${addButtonTop}px`,
-          left: `${addButtonLeft}px`,
-          width: `${itemWidth}px`,
-          height: `${itemHeight}px`
-        }"
-        @contextmenu.stop.prevent
-        @click.stop="addShortcutModalOpen"
-      >
-        <i class="icon-wrapper">
-          <SvgIcon iconName="icon-add" />
-        </i>
-        <div class="shortcut-name">添加网站捷径</div>
+      <!-- 添加捷径弹窗 - 移动到shortcuts-container内部 -->
+      <div class="modal-container" :style="getModalPosition()">
+        <ShortcutAddModal 
+          v-model:show="addShortcutModalShow"
+          :is-edit="addShortcutModalType"
+          :initial-data="addShortcutValue"
+          @submit="handleShortcutSubmit"
+          @close="addShortcutClose"
+          @click.stop
+        />
       </div>
     </div>
   </template>
@@ -56,17 +59,19 @@
       </template>
       添加捷径
     </n-button>
+    
+    <!-- 无捷径时的弹窗容器 -->
+    <div class="modal-container" :style="getModalPosition()">
+      <ShortcutAddModal 
+        v-model:show="addShortcutModalShow"
+        :is-edit="addShortcutModalType"
+        :initial-data="addShortcutValue"
+        @submit="handleShortcutSubmit"
+        @close="addShortcutClose"
+        @click.stop
+      />
+    </div>
   </div>
-  
-  <!-- 添加捷径弹窗 -->
-  <ShortcutAddModal 
-    v-model:show="addShortcutModalShow"
-    :is-edit="addShortcutModalType"
-    :initial-data="addShortcutValue"
-    @submit="handleShortcutSubmit"
-    @close="addShortcutClose"
-    @click.stop
-  />
   
   <!-- 捷径右键菜单 -->
   <n-dropdown
@@ -106,7 +111,7 @@ import SvgIcon from "@/components/SvgIcon.vue";
 import ShortcutAddModal from "@/components/AllFunc/ShortcutAddModal.vue";
 import identifyInput from "@/utils/identifyInput";
 import { useElementSize } from '@vueuse/core';
-import { throttle } from "@/utils/eventUtils";
+import { throttle, debounce } from "@/utils/eventUtils";
 
 const set = setStore();
 const site = siteStore();
@@ -424,8 +429,30 @@ const getIconStyle = (item) => {
 
 // 虚拟滚动相关
 const parentRef = ref(null);
-const { width: containerWidth } = useElementSize(() => document.querySelector('.shortcuts-container'));
+const containerWidth = ref(0);
 const scrollY = ref(0);
+
+// 更新容器宽度
+const updateContainerWidth = () => {
+  const container = document.querySelector('.shortcuts-container');
+  if (container) {
+    containerWidth.value = container.clientWidth;
+  } else {
+    // 如果容器不存在，使用feature-panel的宽度作为参考
+    const featurePanel = document.querySelector('.feature-panel');
+    if (featurePanel) {
+      containerWidth.value = featurePanel.clientWidth - 40; // 减去padding
+    } else {
+      // 如果feature-panel也不存在，使用窗口宽度的一半作为参考
+      containerWidth.value = window.innerWidth / 2;
+    }
+  }
+};
+
+// 监听窗口大小变化 - 使用节流而不是防抖，以便在调整大小时能够实时更新
+const handleResize = throttle(() => {
+  updateContainerWidth();
+}, 50);
 
 // 监听父容器的滚动事件
 onMounted(() => {
@@ -435,90 +462,183 @@ onMounted(() => {
       scrollY.value = featurePanel.scrollTop;
     });
   }
+  
+  // 初始化容器宽度
+  updateContainerWidth();
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize);
 });
 
-// 移除滚动事件监听
+// 移除事件监听
 onUnmounted(() => {
   const featurePanel = document.querySelector('.feature-panel');
   if (featurePanel) {
     featurePanel.removeEventListener('scroll', () => {});
   }
+  
+  // 移除窗口大小变化监听
+  window.removeEventListener('resize', handleResize);
 });
 
-// 计算每行显示的项目数
+// 计算项目尺寸 - 响应式调整
+const baseItemSize = 120; // 基础尺寸，从80增加到120
+const minItemSize = 50; // 最小尺寸，从40增加到50
+
+// 计算项目尺寸比例 - 从1.0到0.5的平滑过渡
+const itemSizeRatio = computed(() => {
+  // 根据容器宽度计算比例，实现平滑过渡
+  // 当容器宽度大于等于1000px时，比例为1.0
+  // 当容器宽度小于等于400px时，比例为0.5
+  // 中间值线性插值
+  if (containerWidth.value >= 1000) return 1.0;
+  if (containerWidth.value <= 400) return 0.5;
+  
+  // 线性插值计算比例
+  return 0.5 + (containerWidth.value - 400) / (1000 - 400) * 0.5;
+});
+
+// 计算项目尺寸
+const itemSize = computed(() => {
+  return Math.max(minItemSize, Math.floor(baseItemSize * itemSizeRatio.value));
+});
+
+// 项目宽度和高度保持一致
+const itemWidth = computed(() => itemSize.value);
+const itemHeight = computed(() => itemSize.value * 1.5); // 高度是宽度的1.5倍，保持图标下方有文字空间
+
+// 计算每行可以显示的项目数
 const itemsPerRow = computed(() => {
-  // 默认保持一排5个
-  if (containerWidth.value < 480) return 3;
-  if (containerWidth.value < 768) return 4;
-  return 5;
+  // 项目之间的间距
+  const spacing = 20;
+  // 计算每行可以放置的项目数量
+  const count = Math.floor((containerWidth.value + spacing) / (itemWidth.value + spacing));
+  // 确保至少显示2个
+  return Math.max(2, count);
 });
 
-// 项目尺寸
-const itemWidth = computed(() => Math.min(80, (containerWidth.value / itemsPerRow.value) - 20));
-const itemHeight = ref(120); // 增加高度以适应正方形图标和文字
-
-// 计算所有项目的位置
-const allItemsWithPosition = computed(() => {
-  const items = [];
+// 计算所有项目数据
+const allItems = computed(() => {
   if (!shortcutData.value || shortcutData.value.length === 0) {
-    return items;
+    // 如果没有快捷方式，返回只包含添加按钮的数组
+    return [{
+      id: 'add-button',
+      isAddButton: true,
+      data: {
+        name: '添加网站捷径'
+      }
+    }];
   }
   
-  const rows = Math.ceil((shortcutData.value.length + 1) / itemsPerRow.value); // +1 是为了添加按钮
-  const totalWidth = itemsPerRow.value * (itemWidth.value + 14); // 总宽度
-  const startX = Math.max(0, (containerWidth.value - totalWidth) / 2); // 计算起始X坐标，使内容居中
+  // 返回快捷方式数据加上添加按钮
+  const items = shortcutData.value.map(item => ({
+    id: item.id,
+    data: item
+  }));
   
-  shortcutData.value.forEach((item, index) => {
-    const row = Math.floor(index / itemsPerRow.value);
-    const col = index % itemsPerRow.value;
-    
-    items.push({
-      id: item.id,
-      data: item,
-      top: row * (itemHeight.value + 14), // 垂直间距
-      left: startX + col * (itemWidth.value + 14)  // 水平间距，加上起始偏移
-    });
+  // 添加按钮作为最后一个项目
+  items.push({
+    id: 'add-button',
+    isAddButton: true,
+    data: {
+      name: '添加网站捷径'
+    }
   });
   
   return items;
 });
 
-// 添加按钮位置
-const addButtonTop = computed(() => {
-  if (!shortcutData.value || shortcutData.value.length === 0) {
-    return 0;
+// 计算所有项目的位置
+const allItemsWithPosition = computed(() => {
+  // 如果没有项目，返回空数组
+  if (allItems.value.length === 0) {
+    return [];
   }
   
-  const row = Math.floor(shortcutData.value.length / itemsPerRow.value);
-  return row * (itemHeight.value + 14); // 垂直间距
+  // 项目之间的间距
+  const horizontalSpacing = 20;
+  const verticalSpacing = 14;
+  
+  // 计算每行的总宽度
+  const rowWidth = itemsPerRow.value * itemWidth.value + (itemsPerRow.value - 1) * horizontalSpacing;
+  
+  // 计算左侧起始位置，使项目水平居中
+  const startX = Math.max(0, (containerWidth.value - rowWidth) / 2);
+  
+  return allItems.value.map((item, index) => {
+    const row = Math.floor(index / itemsPerRow.value);
+    const col = index % itemsPerRow.value;
+    
+    return {
+      ...item,
+      top: row * (itemHeight.value + verticalSpacing),
+      left: startX + col * (itemWidth.value + horizontalSpacing),
+      width: itemWidth.value,
+      height: itemHeight.value
+    };
+  });
 });
 
-const addButtonLeft = computed(() => {
-  if (!shortcutData.value || shortcutData.value.length === 0) {
-    return 0;
-  }
-  
-  const col = shortcutData.value.length % itemsPerRow.value;
-  const totalWidth = itemsPerRow.value * (itemWidth.value + 14); // 总宽度
-  const startX = Math.max(0, (containerWidth.value - totalWidth) / 2); // 计算起始X坐标，使内容居中
-  
-  return startX + col * (itemWidth.value + 14); // 水平间距，加上起始偏移
-});
-
-// 计算总高度
+// 计算容器的总高度
 const totalHeight = computed(() => {
-  if (!shortcutData.value) {
-    return itemHeight.value;
+  if (visibleItems.value.length === 0) {
+    return itemHeight.value + 60; // 最小高度
   }
   
-  const rows = Math.ceil((shortcutData.value.length + 1) / itemsPerRow.value);
-  return rows * (itemHeight.value + 14); // 减小垂直间距
+  // 找到最后一个项目的位置
+  const lastItem = visibleItems.value[visibleItems.value.length - 1];
+  
+  // 返回最后一个项目的底部位置加上一些额外空间
+  return lastItem.top + itemHeight.value + 40; // 额外空间用于底部边距
 });
 
-// 计算可见项目 - 简化为显示所有项目，不再使用虚拟滚动
-const visibleItems = computed(() => {
-  return allItemsWithPosition.value;
-});
+// 计算可见项目 - 使用watch监听containerWidth变化
+const visibleItems = ref([]);
+
+// 更新可见项目
+const updateVisibleItems = () => {
+  visibleItems.value = allItemsWithPosition.value;
+};
+
+// 监听allItemsWithPosition和containerWidth变化
+watch([allItemsWithPosition, containerWidth], () => {
+  updateVisibleItems();
+}, { immediate: true });
+
+/* 处理容器点击事件 */
+const handleContainerClick = (event) => {
+  // 如果点击的是容器本身（而不是其中的元素），则关闭功能面板
+  if (event.target === event.currentTarget) {
+    status.setSiteStatus('normal');
+  }
+};
+
+/* 获取模态框位置 */
+const getModalPosition = () => {
+  // 如果没有可见项目，返回默认位置
+  if (!visibleItems.value || visibleItems.value.length === 0) {
+    return {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)'
+    };
+  }
+  
+  // 获取添加按钮的位置（最后一个项目）
+  const addButton = visibleItems.value[visibleItems.value.length - 1];
+  
+  // 根据屏幕尺寸调整位置
+  let modalOffset = Math.max(10, Math.min(20, containerWidth.value * 0.02)); // 动态偏移量
+  
+  // 返回相对于添加按钮的位置
+  return {
+    position: 'absolute',
+    top: `${addButton.top}px`,
+    left: `${addButton.left}px`,
+    transform: `translateX(${modalOffset}px)` // 使用动态偏移量
+  };
+};
 </script>
 
 <style lang="postcss" scoped>
@@ -546,8 +666,22 @@ const visibleItems = computed(() => {
 .shortcuts-container {
   position: relative;
   width: 100%;
-  min-height: 300px;
+  min-height: 200px; /* 减小最小高度 */
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  
+  /* 响应式调整容器样式 */
+  @media (max-width: 768px) {
+    min-height: 180px;
+    margin-bottom: 15px;
+  }
+  
+  @media (max-width: 480px) {
+    min-height: 150px;
+    margin-bottom: 10px;
+  }
 }
 
 /* 空状态 */
@@ -557,12 +691,31 @@ const visibleItems = computed(() => {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 300px;
+  height: 200px; /* 减小高度 */
   
   .tip {
     margin-bottom: 20px;
     font-size: 16px;
     opacity: 0.8;
+  }
+  
+  /* 响应式调整空状态样式 */
+  @media (max-width: 768px) {
+    height: 180px;
+    
+    .tip {
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    height: 150px;
+    
+    .tip {
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
   }
 }
 
@@ -573,16 +726,18 @@ const visibleItems = computed(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.1s ease;
+  transition: all 0.2s ease-in-out; /* 平滑过渡效果 */
   
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.05);
   }
   
   /* 图标容器 */
   .icon-wrapper {
-    width: 80px;
-    height: 80px;  /* 修改为与宽度相同，使其成为正方形 */
+    width: 100%;
+    aspect-ratio: 1 / 1; /* 确保始终是正方形 */
+    max-width: 100px;
+    max-height: 100px;
     border-radius: 12px;
     background-color: var(--main-background-light-color);
     backdrop-filter: blur(10px);
@@ -595,29 +750,38 @@ const visibleItems = computed(() => {
     box-shadow: var(--main-box-shadow);
     
     .i-icon {
-      font-size: 24px;
+      width: 30%;
+      height: 30%;
+      min-width: 22px;
+      min-height: 22px;
+      max-width: 30px;
+      max-height: 30px;
       color: var(--main-text-color);
     }
     
     .favicon-img {
-      width: 24px;
-      height: 24px;
+      width: 30%;
+      height: 30%;
+      min-width: 22px;
+      min-height: 22px;
+      max-width: 30px;
+      max-height: 30px;
       object-fit: contain;
     }
   }
   
   /* 快捷方式名称 */
   .shortcut-name {
-    font-size: 12px;
+    font-size: clamp(10px, calc(8px + 0.5vw), 12px); /* 响应式字体大小，增大字体 */
     color: var(--main-text-color);
     text-align: center;
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 80px;
-    height: 16px;  /* 固定高度 */
-    line-height: 16px;  /* 行高等于高度 */
+    max-width: 100%; /* 使用100%宽度，适应父容器 */
+    margin-top: 4px;
+    line-height: 1.2;
   }
   
   /* 添加按钮样式 */
@@ -625,11 +789,20 @@ const visibleItems = computed(() => {
     .icon-wrapper {
       border: 2px dashed var(--main-border-color);
       background-color: transparent;
+      
+      .i-icon {
+        color: var(--main-text-color);
+        opacity: 0.7;
+      }
     }
     
     &:hover .icon-wrapper {
       border-color: var(--main-text-color);
       background-color: var(--main-background-light-color);
+      
+      .i-icon {
+        opacity: 1;
+      }
     }
   }
 }
@@ -698,5 +871,25 @@ const visibleItems = computed(() => {
       }
     }
   }
+}
+
+/* 模态框容器 */
+.modal-container {
+  position: absolute;
+  z-index: 1000;
+  pointer-events: none; /* 允许点击穿透 */
+  
+  /* 模态框本身会有pointer-events: auto */
+  :deep(.shortcut-add-modal) {
+    pointer-events: auto;
+  }
+}
+
+/* 空状态下的模态框容器 */
+.empty-shortcuts .modal-container {
+  position: fixed; /* 在空状态下使用fixed定位 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>
