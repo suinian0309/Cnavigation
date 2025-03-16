@@ -18,7 +18,10 @@
       >
         <i class="icon-wrapper" :style="getIconStyle(item.data)">
           <SvgIcon v-if="getIconName(item.data)" :iconName="getIconName(item.data)" />
-          <img v-else :src="getFaviconUrl(item.data.url)" class="favicon-img" alt="网站图标" />
+          <img v-else-if="item.data.icon === 'auto' || item.data.icon === 'default'" :src="getFaviconUrl(item.data.url)" class="favicon-img" alt="网站图标" />
+          <template v-else-if="item.data.icon === 'generated'">{{ item.data.name.charAt(0) }}</template>
+          <!-- 自定义URL图标通过背景图片显示，不需要额外内容 -->
+          <span v-else></span>
         </i>
         <div class="shortcut-name">{{ item.data.name }}</div>
       </div>
@@ -56,91 +59,14 @@
   </div>
   
   <!-- 添加捷径弹窗 -->
-  <n-modal
-    preset="card"
+  <ShortcutAddModal 
     v-model:show="addShortcutModalShow"
-    :title="`${addShortcutModalType ? '编辑' : '添加'}捷径`"
-    :bordered="false"
-    @mask-click="addShortcutClose"
-  >
-    <n-form
-      ref="addShortcutRef"
-      :rules="addShortcutRules"
-      :model="addShortcutValue"
-      :label-width="0"
-      class="shortcut-form"
-    >
-      <n-form-item path="id" style="display: none">
-        <n-input-number
-          disabled
-          placeholder="请输入ID"
-          v-model:value="addShortcutValue.id"
-          style="width: 100%"
-          :show-button="false"
-        />
-      </n-form-item>
-      <n-form-item path="url" class="form-item">
-        <div class="input-wrapper">
-          <div class="input-icon">
-            <SvgIcon iconName="icon-link" />
-          </div>
-          <n-input 
-            clearable 
-            v-model:value="addShortcutValue.url" 
-            placeholder="网址" 
-            class="custom-input"
-            inputmode="url"
-            required
-          />
-        </div>
-      </n-form-item>
-      <n-form-item path="name" class="form-item">
-        <div class="input-wrapper">
-          <div class="input-icon">
-            <SvgIcon iconName="icon-heading" />
-          </div>
-          <n-input
-            clearable
-            v-model:value="addShortcutValue.name"
-            placeholder="标题 - 留空即自动获取"
-            class="custom-input"
-          />
-        </div>
-      </n-form-item>
-      <n-form-item class="form-item">
-        <n-button class="option-button" @click="selectIcon">
-          <div class="button-content">
-            <SvgIcon iconName="icon-icons" />
-            <span>图标</span>
-          </div>
-          <div class="button-value">
-            <span>{{ addShortcutValue.icon === 'auto' ? '自动' : addShortcutValue.icon }}</span>
-            <SvgIcon iconName="icon-angle-right" />
-          </div>
-        </n-button>
-      </n-form-item>
-      <n-form-item class="form-item">
-        <n-button class="option-button" @click="selectFolder">
-          <div class="button-content">
-            <SvgIcon iconName="icon-folder-closed" />
-            <span>收纳夹</span>  
-          </div>
-          <div class="button-value">
-            <span>{{ addShortcutValue.folder === 'none' ? '无' : addShortcutValue.folder }}</span>
-            <SvgIcon iconName="icon-angle-right" />
-          </div>
-        </n-button>
-      </n-form-item>
-    </n-form>
-    <template #footer>
-      <n-space justify="end">
-        <n-button strong secondary @click="addShortcutClose"> 取消 </n-button>
-        <n-button strong secondary @click="addOrEditShortcuts">
-          {{ addShortcutModalType ? "编辑" : "添加" }}
-        </n-button>
-      </n-space>
-    </template>
-  </n-modal>
+    :is-edit="addShortcutModalType"
+    :initial-data="addShortcutValue"
+    @submit="handleShortcutSubmit"
+    @close="addShortcutClose"
+    @click.stop
+  />
   
   <!-- 捷径右键菜单 -->
   <n-dropdown
@@ -177,6 +103,7 @@ import {
 import { storeToRefs } from "pinia";
 import { siteStore, setStore, statusStore } from "@/stores";
 import SvgIcon from "@/components/SvgIcon.vue";
+import ShortcutAddModal from "@/components/AllFunc/ShortcutAddModal.vue";
 import identifyInput from "@/utils/identifyInput";
 import { useElementSize } from '@vueuse/core';
 import { throttle } from "@/utils/eventUtils";
@@ -318,50 +245,46 @@ const addShortcutModalOpen = () => {
   addShortcutModalShow.value = true;
 };
 
-/* 添加或编辑捷径 */
-const addOrEditShortcuts = () => {
-  addShortcutRef.value?.validate((errors) => {
-    if (errors) {
-      $message.error("请检查您的输入");
+/* 处理捷径提交 */
+const handleShortcutSubmit = (data) => {
+  /* 新增捷径 */
+  if (!addShortcutModalType.value) {
+    /* 是否重复 */
+    const isDuplicate = shortcutData.value?.some(
+      (item) =>
+        item.name === data.name || item.url === data.url,
+    );
+    if (isDuplicate) {
+      $message.error("新增名称或链接与已有捷径重复");
       return false;
     }
-    /* 新增捷径 */
-    if (!addShortcutModalType.value) {
-      /* 是否重复 */
-      const isDuplicate = shortcutData.value?.some(
-        (item) =>
-          item.name === addShortcutValue.value.name || item.url === addShortcutValue.value.url,
-      );
-      if (isDuplicate) {
-        $message.error("新增名称或链接与已有捷径重复");
-        return false;
-      }
-      shortcutData.value.push({
-        id: addShortcutValue.value.id,
-        name: addShortcutValue.value.name || "未命名", /* 如果名称为空，设置默认名称 */
-        url: addShortcutValue.value.url,
-        icon: addShortcutValue.value.icon,
-        folder: addShortcutValue.value.folder,
-      });
-      $message.success("捷径添加成功");
-      addShortcutClose();
-      return true;
-    } else {
-      /* 编辑捷径 */
-      const index = shortcutData.value.findIndex((item) => item.id === addShortcutValue.value.id);
-      if (index === -1) {
-        $message.error("捷径中不存在该项，请重试");
-        return false;
-      }
-      shortcutData.value[index].name = addShortcutValue.value.name || shortcutData.value[index].name;
-      shortcutData.value[index].url = addShortcutValue.value.url;
-      shortcutData.value[index].icon = addShortcutValue.value.icon;
-      shortcutData.value[index].folder = addShortcutValue.value.folder;
-      $message.success("捷径编辑成功");
-      addShortcutClose();
-      return true;
+    shortcutData.value.push({
+      id: data.id,
+      name: data.name || "未命名", /* 如果名称为空，设置默认名称 */
+      url: data.url,
+      icon: data.icon,
+      folder: data.folder,
+      customIconUrl: data.customIconUrl,
+      iconStyle: data.iconStyle
+    });
+    $message.success("捷径添加成功");
+    return true;
+  } else {
+    /* 编辑捷径 */
+    const index = shortcutData.value.findIndex((item) => item.id === data.id);
+    if (index === -1) {
+      $message.error("捷径中不存在该项，请重试");
+      return false;
     }
-  });
+    shortcutData.value[index].name = data.name || shortcutData.value[index].name;
+    shortcutData.value[index].url = data.url;
+    shortcutData.value[index].icon = data.icon;
+    shortcutData.value[index].folder = data.folder;
+    shortcutData.value[index].customIconUrl = data.customIconUrl;
+    shortcutData.value[index].iconStyle = data.iconStyle;
+    $message.success("捷径编辑成功");
+    return true;
+  }
 };
 
 /* 删除捷径 */
@@ -435,12 +358,17 @@ const shortCutJump = throttle((url) => {
 
 /* 获取图标名称 */
 const getIconName = (item) => {
-  // 如果item有icon属性且不是auto，使用对应的图标
-  if (item.icon && item.icon !== 'auto') {
+  // 如果item有icon属性且不是auto、default、generated或custom，使用对应的图标
+  if (item.icon && !['auto', 'default', 'generated', 'custom'].includes(item.icon)) {
     return `icon-${item.icon}`;
   }
   
-  // 如果是自动模式，返回null，让模板中使用favicon
+  // 如果是自动模式或默认模式，返回null，让模板中使用favicon
+  if (item.icon === 'auto' || item.icon === 'default') {
+    return null;
+  }
+  
+  // 如果是自定义URL或生成的图标，也返回null，使用自定义样式
   return null;
 };
 
@@ -469,7 +397,26 @@ const getFaviconUrl = (url) => {
 
 /* 获取图标样式 */
 const getIconStyle = (item) => {
-  // 使用半透明白色背景，而不是彩色渐变
+  // 如果是生成的图标，使用保存的样式
+  if (item.icon === 'generated' && item.iconStyle) {
+    return {
+      backgroundColor: item.iconStyle.backgroundColor || '#d4af87',
+      color: item.iconStyle.color || '#ffffff',
+      fontSize: '24px',
+      fontWeight: '500'
+    };
+  }
+  
+  // 如果是自定义URL图标
+  if (item.icon === 'custom' && item.customIconUrl) {
+    return {
+      backgroundImage: `url(${item.customIconUrl})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    };
+  }
+  
+  // 默认样式
   return {
     backgroundColor: 'var(--main-background-light-color)'
   };

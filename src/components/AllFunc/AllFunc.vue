@@ -1,10 +1,10 @@
 <template>
   <!-- 功能区 - 直接使用 feature-panel 作为唯一容器 -->
   <Transition name="fade" mode="out-in">
-    <div v-if="status.siteStatus === 'box'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''">
+    <div v-if="status.siteStatus === 'box'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''" @click.stop>
       <AllBox />
     </div>
-    <div v-else-if="status.siteStatus === 'set'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''">
+    <div v-else-if="status.siteStatus === 'set'" class="feature-panel" :class="status.featurePanelExpanded ? 'big' : ''" @click.stop>
       <AllSet />
     </div>
   </Transition>
